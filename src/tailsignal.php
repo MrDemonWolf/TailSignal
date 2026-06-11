@@ -11,7 +11,7 @@
  * Plugin Name: TailSignal
  * Plugin URI:  https://github.com/mrdemonwolf/TailSignal
  * Description: A self-hosted WordPress plugin using Expo to send custom push notifications. Own your data, bypass OneSignal, and keep your pack in the loop with a wag.
- * Version:     1.1.0
+ * Version:     1.2.0
  * Author:      MrDemonWolf, Inc.
  * Author URI:  https://github.com/mrdemonwolf
  * License:     GPL-2.0-or-later
@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'TAILSIGNAL_VERSION', '1.1.0' );
+define( 'TAILSIGNAL_VERSION', '1.2.0' );
 define( 'TAILSIGNAL_PLUGIN_FILE', __FILE__ );
 define( 'TAILSIGNAL_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'TAILSIGNAL_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
