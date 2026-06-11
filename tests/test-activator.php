@@ -22,6 +22,7 @@ class Test_TailSignal_Activator extends TailSignal_TestCase {
 		$wpdb = Mockery::mock( 'wpdb' );
 		$wpdb->prefix = 'wp_';
 		$wpdb->shouldReceive( 'get_charset_collate' )->andReturn( '' );
+		$wpdb->shouldReceive( 'get_results' )->andReturn( array() );
 
 		// create_tables calls dbDelta.
 		Functions\expect( 'dbDelta' )->andReturn( array() );
@@ -54,6 +55,7 @@ class Test_TailSignal_Activator extends TailSignal_TestCase {
 		$wpdb = Mockery::mock( 'wpdb' );
 		$wpdb->prefix = 'wp_';
 		$wpdb->shouldReceive( 'get_charset_collate' )->andReturn( '' );
+		$wpdb->shouldReceive( 'get_results' )->andReturn( array() );
 
 		Functions\expect( 'dbDelta' )->andReturn( array() );
 
@@ -83,6 +85,7 @@ class Test_TailSignal_Activator extends TailSignal_TestCase {
 		$wpdb = Mockery::mock( 'wpdb' );
 		$wpdb->prefix = 'wp_';
 		$wpdb->shouldReceive( 'get_charset_collate' )->andReturn( '' );
+		$wpdb->shouldReceive( 'get_results' )->andReturn( array() );
 
 		Functions\expect( 'dbDelta' )->andReturn( array() );
 		Functions\expect( 'get_option' )->andReturn( false );
@@ -98,45 +101,15 @@ class Test_TailSignal_Activator extends TailSignal_TestCase {
 	}
 
 	/**
-	 * Test deactivate clears cron events.
+	 * Test deactivate clears all cron events including per-notification args.
 	 */
 	public function test_deactivate_clears_cron() {
-		global $wpdb;
+		Functions\expect( 'wp_unschedule_hook' )
+			->with( 'tailsignal_check_receipts' )
+			->once();
 
-		$wpdb = Mockery::mock( 'wpdb' );
-		$wpdb->prefix = 'wp_';
-
-		Functions\expect( 'wp_clear_scheduled_hook' )->twice();
-
-		// No scheduled notifications.
-		$wpdb->shouldReceive( 'get_results' )->andReturn( array() );
-
-		TailSignal_Deactivator::deactivate();
-		$this->assertTrue( true );
-	}
-
-	/**
-	 * Test deactivate unschedules individual events.
-	 */
-	public function test_deactivate_unschedules_individual() {
-		global $wpdb;
-
-		$wpdb = Mockery::mock( 'wpdb' );
-		$wpdb->prefix = 'wp_';
-
-		Functions\expect( 'wp_clear_scheduled_hook' )->twice();
-
-		$notification     = new stdClass();
-		$notification->id = 5;
-
-		$wpdb->shouldReceive( 'get_results' )->andReturn( array( $notification ) );
-
-		Functions\expect( 'wp_next_scheduled' )
-			->with( 'tailsignal_send_scheduled', array( 5 ) )
-			->andReturn( 1234567890 );
-
-		Functions\expect( 'wp_unschedule_event' )
-			->with( 1234567890, 'tailsignal_send_scheduled', array( 5 ) )
+		Functions\expect( 'wp_unschedule_hook' )
+			->with( 'tailsignal_send_scheduled' )
 			->once();
 
 		TailSignal_Deactivator::deactivate();
@@ -144,27 +117,69 @@ class Test_TailSignal_Activator extends TailSignal_TestCase {
 	}
 
 	/**
-	 * Test deactivate skips notifications without scheduled cron.
+	 * Test activate re-schedules pending scheduled notifications.
 	 */
-	public function test_deactivate_skips_unscheduled() {
+	public function test_activate_reschedules_pending() {
 		global $wpdb;
 
 		$wpdb = Mockery::mock( 'wpdb' );
 		$wpdb->prefix = 'wp_';
+		$wpdb->shouldReceive( 'get_charset_collate' )->andReturn( '' );
 
-		Functions\expect( 'wp_clear_scheduled_hook' )->twice();
+		Functions\expect( 'dbDelta' )->andReturn( array() );
+		Functions\expect( 'get_option' )->andReturn( '1' );
 
-		$notification     = new stdClass();
-		$notification->id = 5;
+		$role = Mockery::mock( 'WP_Role' );
+		$role->shouldReceive( 'add_cap' )->once();
+		Functions\expect( 'get_role' )->andReturn( $role );
+
+		$notification               = new stdClass();
+		$notification->id           = 7;
+		$notification->scheduled_at = '2099-01-01 10:00:00';
 
 		$wpdb->shouldReceive( 'get_results' )->andReturn( array( $notification ) );
 
 		Functions\expect( 'wp_next_scheduled' )
-			->with( 'tailsignal_send_scheduled', array( 5 ) )
+			->with( 'tailsignal_send_scheduled', array( 7 ) )
 			->andReturn( false );
 
-		// wp_unschedule_event should NOT be called.
-		TailSignal_Deactivator::deactivate();
+		Functions\expect( 'wp_schedule_single_event' )
+			->with( strtotime( '2099-01-01 10:00:00' ), 'tailsignal_send_scheduled', array( 7 ) )
+			->once();
+
+		TailSignal_Activator::activate();
+		$this->assertTrue( true );
+	}
+
+	/**
+	 * Test activate skips re-scheduling when an event already exists.
+	 */
+	public function test_activate_skips_already_scheduled() {
+		global $wpdb;
+
+		$wpdb = Mockery::mock( 'wpdb' );
+		$wpdb->prefix = 'wp_';
+		$wpdb->shouldReceive( 'get_charset_collate' )->andReturn( '' );
+
+		Functions\expect( 'dbDelta' )->andReturn( array() );
+		Functions\expect( 'get_option' )->andReturn( '1' );
+
+		$role = Mockery::mock( 'WP_Role' );
+		$role->shouldReceive( 'add_cap' )->once();
+		Functions\expect( 'get_role' )->andReturn( $role );
+
+		$notification               = new stdClass();
+		$notification->id           = 7;
+		$notification->scheduled_at = '2099-01-01 10:00:00';
+
+		$wpdb->shouldReceive( 'get_results' )->andReturn( array( $notification ) );
+
+		Functions\expect( 'wp_next_scheduled' )
+			->with( 'tailsignal_send_scheduled', array( 7 ) )
+			->andReturn( 1234567890 );
+
+		// wp_schedule_single_event should NOT be called.
+		TailSignal_Activator::activate();
 		$this->assertTrue( true );
 	}
 
@@ -177,6 +192,7 @@ class Test_TailSignal_Activator extends TailSignal_TestCase {
 		$wpdb = Mockery::mock( 'wpdb' );
 		$wpdb->prefix = 'wp_';
 		$wpdb->shouldReceive( 'get_charset_collate' )->andReturn( '' );
+		$wpdb->shouldReceive( 'get_results' )->andReturn( array() );
 
 		Functions\expect( 'dbDelta' )->andReturn( array() );
 
@@ -222,6 +238,7 @@ class Test_TailSignal_Activator extends TailSignal_TestCase {
 		$wpdb = Mockery::mock( 'wpdb' );
 		$wpdb->prefix = 'wp_';
 		$wpdb->shouldReceive( 'get_charset_collate' )->andReturn( '' );
+		$wpdb->shouldReceive( 'get_results' )->andReturn( array() );
 
 		Functions\expect( 'dbDelta' )->andReturn( array() );
 
@@ -249,6 +266,7 @@ class Test_TailSignal_Activator extends TailSignal_TestCase {
 		$wpdb = Mockery::mock( 'wpdb' );
 		$wpdb->prefix = 'wp_';
 		$wpdb->shouldReceive( 'get_charset_collate' )->andReturn( '' );
+		$wpdb->shouldReceive( 'get_results' )->andReturn( array() );
 
 		Functions\expect( 'dbDelta' )->andReturn( array() );
 
@@ -279,6 +297,7 @@ class Test_TailSignal_Activator extends TailSignal_TestCase {
 		$wpdb = Mockery::mock( 'wpdb' );
 		$wpdb->prefix = 'wp_';
 		$wpdb->shouldReceive( 'get_charset_collate' )->andReturn( '' );
+		$wpdb->shouldReceive( 'get_results' )->andReturn( array() );
 
 		Functions\expect( 'dbDelta' )->andReturn( array() );
 
@@ -311,6 +330,7 @@ class Test_TailSignal_Activator extends TailSignal_TestCase {
 		$wpdb = Mockery::mock( 'wpdb' );
 		$wpdb->prefix = 'wp_';
 		$wpdb->shouldReceive( 'get_charset_collate' )->andReturn( '' );
+		$wpdb->shouldReceive( 'get_results' )->andReturn( array() );
 
 		Functions\expect( 'dbDelta' )->andReturn( array() );
 		Functions\expect( 'get_option' )->andReturn( '1' ); // Options exist.

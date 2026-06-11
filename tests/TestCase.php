@@ -18,6 +18,11 @@ abstract class TailSignal_TestCase extends PHPUnitTestCase {
 		parent::setUp();
 		Monkey\setUp();
 
+		// Reset request superglobals so state never leaks between tests.
+		$_POST    = array();
+		$_GET     = array();
+		$_REQUEST = array();
+
 		// Define WordPress constants used in production code.
 		if ( ! defined( 'MINUTE_IN_SECONDS' ) ) {
 			define( 'MINUTE_IN_SECONDS', 60 );
@@ -38,7 +43,20 @@ abstract class TailSignal_TestCase extends PHPUnitTestCase {
 			'wp_parse_args'           => function( $args, $defaults ) { return array_merge( $defaults, $args ); },
 			'wp_json_encode'          => function( $data ) { return json_encode( $data ); },
 			'wp_unslash'              => function( $value ) { return $value; },
-			'current_time'            => function() { return '2025-02-12 12:00:00'; },
+			'current_time'            => function( $type = 'mysql' ) {
+				if ( 'timestamp' === $type ) {
+					return strtotime( '2025-02-12 12:00:00' );
+				}
+				return '2025-02-12 12:00:00';
+			},
+			'get_gmt_from_date'       => function( $date, $format = 'Y-m-d H:i:s' ) {
+				$ts = strtotime( $date );
+				if ( false === $ts ) {
+					return 'U' === $format ? 0 : '';
+				}
+				return 'U' === $format ? $ts : gmdate( $format, $ts );
+			},
+			'wp_is_post_revision'     => false,
 			'__'                      => function( $text ) { return $text; },
 			'_e'                      => function( $text ) { echo $text; },
 			'esc_html__'              => function( $text ) { return $text; },

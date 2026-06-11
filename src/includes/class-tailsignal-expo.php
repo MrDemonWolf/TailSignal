@@ -56,6 +56,19 @@ class TailSignal_ExpoMessage extends ExpoMessage {
 class TailSignal_Expo {
 
 	/**
+	 * Maximum messages per Expo push request.
+	 *
+	 * The Expo Push API rejects requests with more than 100 messages and the
+	 * bundled SDK does not chunk, so we must chunk here.
+	 */
+	const PUSH_CHUNK_SIZE = 100;
+
+	/**
+	 * Maximum receipt IDs per Expo receipts request.
+	 */
+	const RECEIPT_CHUNK_SIZE = 1000;
+
+	/**
 	 * Expo SDK instance.
 	 *
 	 * @var Expo|null
@@ -63,19 +76,27 @@ class TailSignal_Expo {
 	private static $expo = null;
 
 	/**
+	 * Access token the cached instance was built with.
+	 *
+	 * @var string|null
+	 */
+	private static $expo_token = null;
+
+	/**
 	 * Get or create the Expo SDK instance.
 	 *
 	 * @return Expo
 	 */
 	public static function get_instance() {
-		if ( null === self::$expo ) {
-			$access_token = get_option( 'tailsignal_expo_access_token', '' );
+		$access_token = (string) get_option( 'tailsignal_expo_access_token', '' );
 
+		if ( null === self::$expo || self::$expo_token !== $access_token ) {
 			if ( ! empty( $access_token ) ) {
 				self::$expo = Expo::driver( 'file' )->setAccessToken( $access_token );
 			} else {
 				self::$expo = Expo::driver( 'file' );
 			}
+			self::$expo_token = $access_token;
 		}
 
 		return self::$expo;
@@ -85,7 +106,8 @@ class TailSignal_Expo {
 	 * Reset the instance (useful for testing).
 	 */
 	public static function reset_instance() {
-		self::$expo = null;
+		self::$expo       = null;
+		self::$expo_token = null;
 	}
 
 	/**
@@ -139,14 +161,15 @@ class TailSignal_Expo {
 	 *
 	 * @param array $tokens  Array of Expo push tokens.
 	 * @param array $params  Message parameters (title, body, data, image_url).
-	 * @return array Result with 'ticket_ids', 'success_count', 'failed_count', 'stale_tokens'.
+	 * @return array Result with 'ticket_ids', 'ticket_token_map', 'success_count', 'failed_count', 'stale_tokens'.
 	 */
 	public static function send( $tokens, $params ) {
 		$result = array(
-			'ticket_ids'    => array(),
-			'success_count' => 0,
-			'failed_count'  => 0,
-			'stale_tokens'  => array(),
+			'ticket_ids'       => array(),
+			'ticket_token_map' => array(),
+			'success_count'    => 0,
+			'failed_count'     => 0,
+			'stale_tokens'     => array(),
 		);
 
 		if ( empty( $tokens ) ) {
@@ -164,37 +187,44 @@ class TailSignal_Expo {
 		$expo    = self::get_instance();
 		$message = self::build_message( $params );
 
-		$indexed_tokens = array_values( $valid_tokens );
+		// Expo rejects more than 100 messages per request and the SDK does
+		// not chunk, so split into batches ourselves.
+		$chunks = array_chunk( array_values( $valid_tokens ), self::PUSH_CHUNK_SIZE );
 
-		try {
-			$response = $expo->send( $message )->to( $indexed_tokens )->push();
+		foreach ( $chunks as $chunk_tokens ) {
+			try {
+				$response = $expo->send( $message )->to( $chunk_tokens )->push();
 
-			if ( $response ) {
-				$data = $response->getData();
+				$data = $response ? $response->getData() : null;
 
-				if ( ! empty( $data ) ) {
-					foreach ( $data as $index => $ticket ) {
-						if ( isset( $ticket['status'] ) && 'ok' === $ticket['status'] ) {
-							$result['success_count']++;
-							if ( isset( $ticket['id'] ) ) {
-								$result['ticket_ids'][] = $ticket['id'];
+				if ( empty( $data ) ) {
+					continue;
+				}
+
+				foreach ( $data as $index => $ticket ) {
+					if ( isset( $ticket['status'] ) && 'ok' === $ticket['status'] ) {
+						$result['success_count']++;
+						if ( isset( $ticket['id'] ) ) {
+							$result['ticket_ids'][] = $ticket['id'];
+							if ( isset( $chunk_tokens[ $index ] ) ) {
+								$result['ticket_token_map'][ $ticket['id'] ] = $chunk_tokens[ $index ];
 							}
-						} else {
-							$result['failed_count']++;
+						}
+					} else {
+						$result['failed_count']++;
 
-							// Track DeviceNotRegistered for cleanup.
-							if ( isset( $ticket['details']['error'] ) && 'DeviceNotRegistered' === $ticket['details']['error'] ) {
-								if ( isset( $indexed_tokens[ $index ] ) ) {
-									$result['stale_tokens'][] = $indexed_tokens[ $index ];
-								}
+						// Track DeviceNotRegistered for cleanup.
+						if ( isset( $ticket['details']['error'] ) && 'DeviceNotRegistered' === $ticket['details']['error'] ) {
+							if ( isset( $chunk_tokens[ $index ] ) ) {
+								$result['stale_tokens'][] = $chunk_tokens[ $index ];
 							}
 						}
 					}
 				}
+			} catch ( \Exception $e ) {
+				$result['failed_count'] += count( $chunk_tokens );
+				error_log( 'TailSignal Expo send error: ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 			}
-		} catch ( \Exception $e ) {
-			$result['failed_count'] = count( $valid_tokens );
-			error_log( 'TailSignal Expo send error: ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 		}
 
 		// Auto-remove stale tokens.
@@ -216,18 +246,25 @@ class TailSignal_Expo {
 			return array();
 		}
 
-		$expo = self::get_instance();
+		$expo     = self::get_instance();
+		$receipts = array();
 
-		try {
-			$response = $expo->getReceipts( $ticket_ids )->check();
+		// Expo caps receipt requests, so chunk large backlogs.
+		foreach ( array_chunk( array_values( $ticket_ids ), self::RECEIPT_CHUNK_SIZE ) as $chunk ) {
+			try {
+				$response = $expo->getReceipts( $chunk )->check();
 
-			if ( $response ) {
-				return $response->getData() ?? array();
+				if ( $response ) {
+					$data = $response->getData();
+					if ( ! empty( $data ) && is_array( $data ) ) {
+						$receipts = array_merge( $receipts, $data );
+					}
+				}
+			} catch ( \Exception $e ) {
+				error_log( 'TailSignal receipt check error: ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 			}
-		} catch ( \Exception $e ) {
-			error_log( 'TailSignal receipt check error: ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 		}
 
-		return array();
+		return $receipts;
 	}
 }

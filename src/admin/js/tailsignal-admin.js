@@ -20,7 +20,8 @@
 		$existing.remove();
 		var $notice = $('<div class="notice notice-' + type + ' is-dismissible"><p></p></div>');
 		$notice.find('p').text(message);
-		var $dismiss = $('<button type="button" class="notice-dismiss"><span class="screen-reader-text">Dismiss</span></button>');
+		var $dismiss = $('<button type="button" class="notice-dismiss"><span class="screen-reader-text"></span></button>');
+		$dismiss.find('.screen-reader-text').text(tailsignal.strings.dismiss || 'Dismiss');
 		$notice.append($dismiss);
 		$('#tailsignal-app .tailsignal-page-header').after($notice);
 		$dismiss.on('click', function() { $notice.fadeOut(200, function() { $(this).remove(); }); });
@@ -36,12 +37,14 @@
 	function tailsignalConfirm(message, onConfirm) {
 		var $overlay = $('<div class="tailsignal-modal-overlay" style="position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;" role="dialog" aria-modal="true" aria-label="Confirmation dialog"></div>');
 		var $panel = $('<div class="tailsignal-modal-panel" style="max-width:400px;width:90%;"></div>');
-		$panel.append('<div class="tailsignal-modal-header"><h3>Confirm</h3></div>');
+		var $header = $('<div class="tailsignal-modal-header"></div>');
+		$header.append($('<h3></h3>').text(tailsignal.strings.confirm || 'Confirm'));
+		$panel.append($header);
 		var $body = $('<div class="tailsignal-modal-body"></div>');
 		$body.append($('<p></p>').text(message));
 		var $actions = $('<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;"></div>');
-		$actions.append('<button type="button" class="button ts-confirm-cancel">Cancel</button>');
-		$actions.append('<button type="button" class="button button-primary ts-confirm-ok">Confirm</button>');
+		$actions.append($('<button type="button" class="button ts-confirm-cancel"></button>').text(tailsignal.strings.cancel || 'Cancel'));
+		$actions.append($('<button type="button" class="button button-primary ts-confirm-ok"></button>').text(tailsignal.strings.confirm || 'Confirm'));
 		$body.append($actions);
 		$panel.append($body);
 		$overlay.append($panel);
@@ -62,10 +65,14 @@
 	// Schedule radio toggle
 	$(document).on('change', '.tailsignal-when-radio', function() {
 		var isSchedule = $(this).val() === 'schedule';
+		var $btn = $('#tailsignal-send-btn');
+		if (!$btn.data('original-text')) {
+			$btn.data('original-text', $btn.text());
+		}
 		$('#tailsignal-schedule-datetime').prop('disabled', !isSchedule);
-		$('#tailsignal-send-btn').text(isSchedule ?
-			tailsignal.strings.scheduled || 'Schedule' :
-			'Signal the Pack'
+		$btn.text(isSchedule ?
+			(tailsignal.strings.schedule || 'Schedule') :
+			$btn.data('original-text')
 		);
 	});
 
@@ -75,6 +82,14 @@
 
 		var $btn = $('#tailsignal-send-btn');
 		var $status = $('#tailsignal-send-status');
+		var originalText = $btn.text();
+
+		// Require a datetime when scheduling.
+		var sendWhen = $('[name="send_when"]:checked').val();
+		if (sendWhen === 'schedule' && !$('#tailsignal-schedule-datetime').val()) {
+			tailsignalNotice(tailsignal.strings.schedule_datetime_required || 'Please choose a date and time before scheduling.', 'error');
+			return;
+		}
 
 		$btn.prop('disabled', true).text(tailsignal.strings.sending);
 		$status.text('').removeClass('tailsignal-status-success tailsignal-status-error');
@@ -100,7 +115,6 @@
 		}
 
 		// Schedule
-		var sendWhen = $('[name="send_when"]:checked').val();
 		if (sendWhen === 'schedule') {
 			data.scheduled_at = $('#tailsignal-schedule-datetime').val();
 		}
@@ -116,12 +130,12 @@
 				}
 			} else {
 				$status.text(response.data.message).addClass('tailsignal-status-error');
-				$btn.text('Signal the Pack');
+				$btn.text(originalText);
 			}
 			$btn.prop('disabled', false);
 		}).fail(function() {
 			$status.text(tailsignal.strings.error).addClass('tailsignal-status-error');
-			$btn.prop('disabled', false).text('Signal the Pack');
+			$btn.prop('disabled', false).text(originalText);
 		});
 	});
 
@@ -141,6 +155,8 @@
 				} else {
 					tailsignalNotice(response.data.message, 'error');
 				}
+			}).fail(function() {
+				tailsignalNotice(tailsignal.strings.error, 'error');
 			});
 		});
 	});
@@ -503,7 +519,8 @@
 		if ( ! $counter.length ) return;
 		var checked = $('#tailsignal-group-save-form input[name="device_ids[]"]:checked').length;
 		var total   = $('#tailsignal-group-save-form input[name="device_ids[]"]').length;
-		$counter.text( checked + ' / ' + total + ' selected' );
+		var template = tailsignal.strings.selected_count || '%1$s / %2$s selected';
+		$counter.text( template.replace('%1$s', checked).replace('%2$s', total) );
 	}
 
 	// Device search in groups
@@ -584,6 +601,7 @@
 
 	$(document).on('click', '.tailsignal-quick-send-btn', function() {
 		var $btn = $(this);
+		var originalText = $btn.text();
 		var $status = $btn.siblings('.tailsignal-quick-send-status');
 		var postId = $btn.data('post-id');
 		var $metaBox = $btn.closest('.tailsignal-meta-box');
@@ -613,10 +631,10 @@
 			} else {
 				$status.text(response.data.message).removeClass('tailsignal-status-success').addClass('tailsignal-status-error');
 			}
-			$btn.prop('disabled', false).text('Send Now');
+			$btn.prop('disabled', false).text(originalText);
 		}).fail(function() {
 			$status.text(tailsignal.strings.error).removeClass('tailsignal-status-success').addClass('tailsignal-status-error');
-			$btn.prop('disabled', false).text('Send Now');
+			$btn.prop('disabled', false).text(originalText);
 		});
 	});
 

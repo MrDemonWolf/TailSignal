@@ -245,7 +245,11 @@ class TailSignal_DB {
 			'updated_at'     => $now,
 		);
 
-		$data = wp_parse_args( $data, $defaults );
+		// Keep the caller-supplied keys: the update path must only touch
+		// fields the caller actually sent, otherwise a partial re-register
+		// wipes stored values (user_id link, labels, etc.) with defaults.
+		$supplied = $data;
+		$data     = wp_parse_args( $data, $defaults );
 
 		// Check if device already exists.
 		$existing = $wpdb->get_var(
@@ -255,36 +259,75 @@ class TailSignal_DB {
 			)
 		);
 
-		$format = self::get_device_format( $data );
-
 		if ( $existing ) {
-			// Update existing device.
-			unset( $data['created_at'] );
-			$data['updated_at']     = $now;
-			$data['last_active_at'] = $now;
-			$data['is_active']      = 1;
-
-			$format = self::get_device_format( $data );
-
-			$wpdb->update(
-				$table,
-				$data,
-				array( 'id' => $existing ),
-				$format,
-				array( '%d' )
-			);
-
-			return (int) $existing;
+			return self::update_existing_device( (int) $existing, $supplied, $now );
 		}
 
-		$wpdb->insert( $table, $data, $format );
+		$format = self::get_device_format( $data );
+
+		$inserted = $wpdb->insert( $table, $data, $format );
 
 		if ( $wpdb->insert_id ) {
 			self::invalidate_device_cache();
 			return (int) $wpdb->insert_id;
 		}
 
+		// Insert failed — a concurrent registration may have won the race.
+		// Re-check and fall through to the update path instead of erroring.
+		if ( false === $inserted ) {
+			$existing = $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT id FROM {$table} WHERE expo_token = %s",
+					$data['expo_token']
+				)
+			);
+			if ( $existing ) {
+				return self::update_existing_device( (int) $existing, $supplied, $now );
+			}
+		}
+
 		return false;
+	}
+
+	/**
+	 * Update an existing device row from a (re-)registration.
+	 *
+	 * Only the caller-supplied fields are written; registering always
+	 * refreshes activity timestamps and re-activates the device (a register
+	 * call expresses intent to receive notifications).
+	 *
+	 * @param int    $device_id Existing device ID.
+	 * @param array  $supplied  Fields the caller actually passed.
+	 * @param string $now       Current MySQL datetime.
+	 * @return int The device ID.
+	 */
+	private static function update_existing_device( $device_id, $supplied, $now ) {
+		global $wpdb;
+
+		$table = $wpdb->prefix . 'tailsignal_devices';
+
+		unset( $supplied['created_at'], $supplied['expo_token'] );
+
+		// Never clear an existing user link with an empty value.
+		if ( array_key_exists( 'user_id', $supplied ) && empty( $supplied['user_id'] ) ) {
+			unset( $supplied['user_id'] );
+		}
+
+		$supplied['updated_at']     = $now;
+		$supplied['last_active_at'] = $now;
+		$supplied['is_active']      = 1;
+
+		$wpdb->update(
+			$table,
+			$supplied,
+			array( 'id' => $device_id ),
+			self::get_device_format( $supplied ),
+			array( '%d' )
+		);
+
+		self::invalidate_device_cache();
+
+		return $device_id;
 	}
 
 	/**
@@ -1247,7 +1290,10 @@ class TailSignal_DB {
 		global $wpdb;
 
 		$table = $wpdb->prefix . 'tailsignal_notifications';
-		$start = gmdate( 'Y-m-01 00:00:00' );
+
+		// created_at is stored in site-local time (current_time), so the
+		// month boundary must be site-local too, not UTC.
+		$start = gmdate( 'Y-m-01 00:00:00', current_time( 'timestamp' ) );
 
 		return (int) $wpdb->get_var(
 			$wpdb->prepare(
@@ -1350,10 +1396,12 @@ class TailSignal_DB {
 
 		$prefix = $wpdb->prefix . 'tailsignal_';
 
+		// DELETE (not TRUNCATE) so the transaction is real: TRUNCATE is DDL
+		// and implicitly commits, which made the previous rollback illusory.
 		$wpdb->query( 'START TRANSACTION' );
 
-		$r1 = $wpdb->query( "TRUNCATE TABLE {$prefix}notification_history" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$r2 = $wpdb->query( "TRUNCATE TABLE {$prefix}notifications" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$r1 = $wpdb->query( "DELETE FROM {$prefix}notification_history" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$r2 = $wpdb->query( "DELETE FROM {$prefix}notifications" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 		$success = false !== $r1 && false !== $r2;
 
@@ -1391,10 +1439,11 @@ class TailSignal_DB {
 					SUM(total_success) as success,
 					SUM(total_failed) as failed
 				FROM {$table}
-				WHERE created_at >= DATE_SUB(UTC_TIMESTAMP(), INTERVAL %d MONTH)
+				WHERE created_at >= DATE_SUB(%s, INTERVAL %d MONTH)
 					AND status IN ('sent', 'receipts_checked', 'failed')
 				GROUP BY DATE_FORMAT(created_at, '%%Y-%%m')
 				ORDER BY month ASC",
+				current_time( 'mysql' ),
 				$months
 			)
 		);

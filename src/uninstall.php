@@ -24,6 +24,10 @@ $options = array(
 	'tailsignal_use_featured_image',
 	'tailsignal_dev_mode',
 	'tailsignal_db_version',
+	'tailsignal_portfolio_auto_notify',
+	'tailsignal_portfolio_default_title',
+	'tailsignal_portfolio_default_body',
+	'tailsignal_portfolio_use_featured_image',
 );
 
 foreach ( $options as $option ) {
@@ -49,6 +53,6 @@ delete_post_meta_by_key( '_tailsignal_custom_title' );
 delete_post_meta_by_key( '_tailsignal_custom_body' );
 delete_post_meta_by_key( '_tailsignal_include_image' );
 
-// Clear any remaining cron events.
-wp_clear_scheduled_hook( 'tailsignal_check_receipts' );
-wp_clear_scheduled_hook( 'tailsignal_send_scheduled' );
+// Clear any remaining cron events (all args variants).
+wp_unschedule_hook( 'tailsignal_check_receipts' );
+wp_unschedule_hook( 'tailsignal_send_scheduled' );

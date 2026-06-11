@@ -265,7 +265,6 @@ class Test_TailSignal_Admin extends TailSignal_TestCase {
 	public function test_enqueue_scripts_no_media_on_dashboard() {
 		Functions\expect( 'wp_enqueue_script' )->atLeast()->once();
 		Functions\expect( 'wp_localize_script' )->once();
-		Functions\expect( 'wp_script_add_data' )->once();
 		Functions\expect( 'admin_url' )->andReturn( '' );
 		Functions\expect( 'rest_url' )->andReturn( '' );
 		Functions\expect( 'wp_create_nonce' )->andReturn( '' );
@@ -286,7 +285,6 @@ class Test_TailSignal_Admin extends TailSignal_TestCase {
 			$enqueued[] = $args[0];
 		} );
 		Functions\expect( 'wp_localize_script' )->once();
-		Functions\expect( 'wp_script_add_data' )->once();
 		Functions\expect( 'admin_url' )->andReturn( '' );
 		Functions\expect( 'rest_url' )->andReturn( '' );
 		Functions\expect( 'wp_create_nonce' )->andReturn( '' );

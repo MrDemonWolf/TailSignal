@@ -204,6 +204,14 @@ class Test_TailSignal_Notification extends TailSignal_TestCase {
 			->with( 'tailsignal_dev_mode', '0' )
 			->andReturn( '0' );
 
+		// Notified marker is set pre-send and cleared again when no tokens.
+		Functions\expect( 'update_post_meta' )
+			->with( 42, '_tailsignal_notified', '1' )
+			->once();
+		Functions\expect( 'delete_post_meta' )
+			->with( 42, '_tailsignal_notified' )
+			->once();
+
 		// No tokens.
 		$wpdb->shouldReceive( 'get_col' )->andReturn( array() );
 

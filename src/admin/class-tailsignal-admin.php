@@ -144,10 +144,24 @@ class TailSignal_Admin {
 			wp_enqueue_media();
 		}
 
+		$deps = array( 'jquery' );
+
+		// Load Chart.js on dashboard page only (before our script, as a dependency).
+		if ( 'toplevel_page_tailsignal' === $hook ) {
+			wp_enqueue_script(
+				'chartjs',
+				TAILSIGNAL_PLUGIN_URL . 'admin/js/vendor/chart.min.js',
+				array(),
+				'4.4.7',
+				true
+			);
+			$deps[] = 'chartjs';
+		}
+
 		wp_enqueue_script(
 			'tailsignal-admin',
 			TAILSIGNAL_PLUGIN_URL . 'admin/js/tailsignal-admin.js',
-			array( 'jquery' ),
+			$deps,
 			TAILSIGNAL_VERSION,
 			true
 		);
@@ -165,24 +179,19 @@ class TailSignal_Admin {
 				'sent'            => __( 'Sent!', 'tailsignal' ),
 				'error'           => __( 'An error occurred.', 'tailsignal' ),
 				'scheduled'       => __( 'Scheduled!', 'tailsignal' ),
+				'schedule'        => __( 'Schedule', 'tailsignal' ),
+				'schedule_datetime_required' => __( 'Please choose a date and time before scheduling.', 'tailsignal' ),
+				'confirm'            => __( 'Confirm', 'tailsignal' ),
+				'cancel'             => __( 'Cancel', 'tailsignal' ),
+				'dismiss'            => __( 'Dismiss', 'tailsignal' ),
+				/* translators: 1: selected count, 2: total count */
+				'selected_count'     => __( '%1$s / %2$s selected', 'tailsignal' ),
 				'cancelled'          => __( 'Cancelled.', 'tailsignal' ),
 				'confirm_delete_all' => __( 'Are you sure you want to delete ALL notification history? This cannot be undone.', 'tailsignal' ),
 				'deleting'           => __( 'Deleting...', 'tailsignal' ),
 				'delete_all_history' => __( 'Delete All History', 'tailsignal' ),
 			),
 		) );
-
-		// Load Chart.js on dashboard page only.
-		if ( 'toplevel_page_tailsignal' === $hook ) {
-			wp_enqueue_script(
-				'chartjs',
-				TAILSIGNAL_PLUGIN_URL . 'admin/js/vendor/chart.min.js',
-				array(),
-				'4.4.7',
-				true
-			);
-			wp_script_add_data( 'chartjs', 'strategy', 'defer' );
-		}
 	}
 
 	/**
@@ -208,8 +217,9 @@ class TailSignal_Admin {
 			return;
 		}
 
-		$is_tailsignal = $this->is_tailsignal_page( $hook->id );
-		$is_post_edit  = in_array( $hook->id, array( 'post', 'page' ), true ) || 'add' === $hook->action;
+		$is_tailsignal   = $this->is_tailsignal_page( $hook->id );
+		$supported_types = apply_filters( 'tailsignal_post_types', array( 'post', 'portfolio' ) );
+		$is_post_edit    = 'post' === $hook->base && in_array( $hook->post_type, $supported_types, true );
 
 		if ( ! $is_tailsignal && ! $is_post_edit ) {
 			return;

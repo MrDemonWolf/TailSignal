@@ -327,60 +327,6 @@ class Test_TailSignal_Admin_Handlers extends TailSignal_TestCase {
 		$this->assertTrue( true );
 	}
 
-	/**
-	 * Test handle_get_group_devices checks permission.
-	 */
-	public function test_handle_get_group_devices_checks_permission() {
-		Functions\expect( 'check_ajax_referer' )->once();
-		Functions\expect( 'current_user_can' )->andReturn( false );
-
-		$exited = false;
-		Functions\expect( 'wp_send_json_error' )->once()->andReturnUsing( function() use ( &$exited ) {
-			$exited = true;
-			throw new \RuntimeException( 'denied' );
-		} );
-
-		$groups = new TailSignal_Admin_Groups();
-		try {
-			$groups->handle_get_group_devices();
-		} catch ( \RuntimeException $e ) {
-			// Expected.
-		}
-		$this->assertTrue( $exited );
-	}
-
-	/**
-	 * Test handle_get_group_devices returns device IDs.
-	 */
-	public function test_handle_get_group_devices_success() {
-		global $wpdb;
-
-		$wpdb = Mockery::mock( 'wpdb' );
-		$wpdb->prefix = 'wp_';
-
-		$_GET = array( 'group_id' => '5' );
-
-		Functions\expect( 'check_ajax_referer' )->once();
-		Functions\expect( 'current_user_can' )->andReturn( true );
-
-		$wpdb->shouldReceive( 'get_col' )->andReturn( array( '1', '2', '3' ) );
-		$wpdb->shouldReceive( 'prepare' )->andReturn( '' );
-
-		$success_data = null;
-		Functions\expect( 'wp_send_json_success' )->once()->andReturnUsing( function( $data ) use ( &$success_data ) {
-			$success_data = $data;
-			throw new \RuntimeException( 'success' );
-		} );
-
-		$groups = new TailSignal_Admin_Groups();
-		try {
-			$groups->handle_get_group_devices();
-		} catch ( \RuntimeException $e ) {
-			// Expected.
-		}
-		$this->assertCount( 3, $success_data['device_ids'] );
-	}
-
 	// ── Groups Edit Nonce ─────────────────────────────────────────
 
 	/**

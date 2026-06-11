@@ -161,7 +161,6 @@ class Test_TailSignal_Core extends TailSignal_TestCase {
 		$this->assertContains( 'wp_ajax_tailsignal_update_device', $registered_actions );
 		$this->assertContains( 'wp_ajax_tailsignal_toggle_dev', $registered_actions );
 		$this->assertContains( 'wp_ajax_tailsignal_quick_send', $registered_actions );
-		$this->assertContains( 'wp_ajax_tailsignal_get_group_devices', $registered_actions );
 	}
 
 	/**
@@ -278,8 +277,8 @@ class Test_TailSignal_Core extends TailSignal_TestCase {
 		$plugin->run();
 
 		// 5 base + admin_menu + 2 enqueue + admin_footer + admin_init + add_meta_boxes + save_post
-		// + quick_send + send + cancel + save_group + delete_group + get_group_devices
-		// + delete_all + update_device + toggle_dev = 5 + 16 = 21
-		$this->assertSame( 21, $action_count );
+		// + quick_send + send + cancel + save_group + delete_group
+		// + delete_all + update_device + toggle_dev = 5 + 15 = 20
+		$this->assertSame( 20, $action_count );
 	}
 }

@@ -61,7 +61,6 @@ class TailSignal_Devices_List_Table extends WP_List_Table {
 		return array(
 			'user_label'     => array( 'user_label', false ),
 			'device_type'    => array( 'device_type', false ),
-			'created_at'     => array( 'created_at', true ),
 			'last_active_at' => array( 'last_active_at', false ),
 		);
 	}
@@ -207,9 +206,9 @@ class TailSignal_Devices_List_Table extends WP_List_Table {
 			return;
 		}
 
-		$current_type   = isset( $_GET['device_type'] ) ? sanitize_text_field( wp_unslash( $_GET['device_type'] ) ) : '';
-		$current_dev    = isset( $_GET['is_dev'] ) ? sanitize_text_field( wp_unslash( $_GET['is_dev'] ) ) : '';
-		$current_group  = isset( $_GET['group_id'] ) ? intval( $_GET['group_id'] ) : '';
+		$current_type   = isset( $_REQUEST['device_type'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['device_type'] ) ) : '';
+		$current_dev    = isset( $_REQUEST['is_dev'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['is_dev'] ) ) : '';
+		$current_group  = isset( $_REQUEST['group_id'] ) ? intval( $_REQUEST['group_id'] ) : '';
 		$groups         = TailSignal_DB::get_all_groups();
 
 		echo '<div class="alignleft actions">';
@@ -259,10 +258,10 @@ class TailSignal_Devices_List_Table extends WP_List_Table {
 			'page'        => $this->get_pagenum(),
 			'orderby'     => isset( $_GET['orderby'] ) ? sanitize_text_field( wp_unslash( $_GET['orderby'] ) ) : 'created_at',
 			'order'       => isset( $_GET['order'] ) ? sanitize_text_field( wp_unslash( $_GET['order'] ) ) : 'DESC',
-			'search'      => isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '',
-			'device_type' => isset( $_GET['device_type'] ) ? sanitize_text_field( wp_unslash( $_GET['device_type'] ) ) : '',
-			'is_dev'      => isset( $_GET['is_dev'] ) && '' !== $_GET['is_dev'] ? sanitize_text_field( wp_unslash( $_GET['is_dev'] ) ) : '',
-			'group_id'    => isset( $_GET['group_id'] ) && '' !== $_GET['group_id'] ? intval( $_GET['group_id'] ) : '',
+			'search'      => isset( $_REQUEST['s'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['s'] ) ) : '',
+			'device_type' => isset( $_REQUEST['device_type'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['device_type'] ) ) : '',
+			'is_dev'      => isset( $_REQUEST['is_dev'] ) && '' !== $_REQUEST['is_dev'] ? sanitize_text_field( wp_unslash( $_REQUEST['is_dev'] ) ) : '',
+			'group_id'    => isset( $_REQUEST['group_id'] ) && '' !== $_REQUEST['group_id'] ? intval( $_REQUEST['group_id'] ) : '',
 		);
 
 		$result = TailSignal_DB::get_devices( $args );
