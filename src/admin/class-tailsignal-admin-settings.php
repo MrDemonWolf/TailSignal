@@ -254,7 +254,7 @@ class TailSignal_Admin_Settings {
 	public function render_text_field( $args ) {
 		$name  = $args['name'];
 		$type  = $args['type'] ?? 'text';
-		$value = get_option( $name, '' );
+		$value = get_option( $name );
 
 		printf(
 			'<input type="%s" name="%s" value="%s" class="regular-text" />',
@@ -275,7 +275,7 @@ class TailSignal_Admin_Settings {
 	 */
 	public function render_toggle_field( $args ) {
 		$name    = $args['name'];
-		$checked = '1' === get_option( $name, '0' );
+		$checked = '1' === get_option( $name );
 
 		echo '<label class="tailsignal-toggle">';
 		printf(

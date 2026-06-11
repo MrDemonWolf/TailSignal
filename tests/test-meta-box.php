@@ -29,6 +29,7 @@ class Test_TailSignal_Meta_Box extends TailSignal_TestCase {
 	 */
 	public function test_save_meta_box_requires_nonce() {
 		$post = Mockery::mock( 'WP_Post' );
+		$post->post_type = 'post';
 
 		// No nonce in $_POST - should return early.
 		$_POST = array();
@@ -45,6 +46,7 @@ class Test_TailSignal_Meta_Box extends TailSignal_TestCase {
 	 */
 	public function test_save_meta_box_rejects_invalid_nonce() {
 		$post = Mockery::mock( 'WP_Post' );
+		$post->post_type = 'post';
 
 		$_POST = array(
 			'tailsignal_meta_box_nonce' => 'bad_nonce',
@@ -64,6 +66,7 @@ class Test_TailSignal_Meta_Box extends TailSignal_TestCase {
 	 */
 	public function test_save_meta_box_saves_meta() {
 		$post = Mockery::mock( 'WP_Post' );
+		$post->post_type = 'post';
 
 		$_POST = array(
 			'tailsignal_meta_box_nonce' => 'good_nonce',
@@ -78,6 +81,8 @@ class Test_TailSignal_Meta_Box extends TailSignal_TestCase {
 			->andReturn( true );
 
 		Functions\expect( 'current_user_can' )->andReturn( true );
+
+		Functions\when( 'get_option' )->alias( function( $key, $default = false ) { return $default; } );
 
 		Functions\expect( 'update_post_meta' )->times( 4 );
 
@@ -104,6 +109,7 @@ class Test_TailSignal_Meta_Box extends TailSignal_TestCase {
 	 */
 	public function test_save_meta_box_checks_permissions() {
 		$post = Mockery::mock( 'WP_Post' );
+		$post->post_type = 'post';
 
 		$_POST = array(
 			'tailsignal_meta_box_nonce' => 'good_nonce',
@@ -127,6 +133,7 @@ class Test_TailSignal_Meta_Box extends TailSignal_TestCase {
 	 */
 	public function test_save_meta_box_requires_tailsignal_manage() {
 		$post = Mockery::mock( 'WP_Post' );
+		$post->post_type = 'post';
 
 		$_POST = array(
 			'tailsignal_meta_box_nonce' => 'good_nonce',
@@ -155,6 +162,7 @@ class Test_TailSignal_Meta_Box extends TailSignal_TestCase {
 	 */
 	public function test_save_meta_box_saves_zero_when_unchecked() {
 		$post = Mockery::mock( 'WP_Post' );
+		$post->post_type = 'post';
 
 		$_POST = array(
 			'tailsignal_meta_box_nonce' => 'good_nonce',
@@ -163,6 +171,8 @@ class Test_TailSignal_Meta_Box extends TailSignal_TestCase {
 
 		Functions\expect( 'wp_verify_nonce' )->andReturn( true );
 		Functions\expect( 'current_user_can' )->andReturn( true );
+
+		Functions\when( 'get_option' )->alias( function( $key, $default = false ) { return $default; } );
 
 		$saved_meta = array();
 		Functions\expect( 'update_post_meta' )->andReturnUsing( function( $post_id, $key, $value ) use ( &$saved_meta ) {
@@ -180,6 +190,7 @@ class Test_TailSignal_Meta_Box extends TailSignal_TestCase {
 	 */
 	public function test_save_meta_box_missing_custom_fields() {
 		$post = Mockery::mock( 'WP_Post' );
+		$post->post_type = 'post';
 
 		$_POST = array(
 			'tailsignal_meta_box_nonce' => 'good_nonce',
@@ -190,6 +201,8 @@ class Test_TailSignal_Meta_Box extends TailSignal_TestCase {
 
 		Functions\expect( 'wp_verify_nonce' )->andReturn( true );
 		Functions\expect( 'current_user_can' )->andReturn( true );
+
+		Functions\when( 'get_option' )->alias( function( $key, $default = false ) { return $default; } );
 
 		// Only 2 update_post_meta calls (notify + include_image), not 4.
 		Functions\expect( 'update_post_meta' )->times( 2 );
@@ -208,6 +221,7 @@ class Test_TailSignal_Meta_Box extends TailSignal_TestCase {
 		$wpdb->prefix = 'wp_';
 
 		$post     = Mockery::mock( 'WP_Post' );
+		$post->post_type = 'post';
 		$post->ID = 5;
 
 		Functions\expect( 'wp_nonce_field' )
@@ -243,6 +257,7 @@ class Test_TailSignal_Meta_Box extends TailSignal_TestCase {
 		$wpdb->prefix = 'wp_';
 
 		$post     = Mockery::mock( 'WP_Post' );
+		$post->post_type = 'post';
 		$post->ID = 5;
 
 		Functions\expect( 'wp_nonce_field' )->once();
@@ -266,6 +281,7 @@ class Test_TailSignal_Meta_Box extends TailSignal_TestCase {
 		$wpdb->prefix = 'wp_';
 
 		$post     = Mockery::mock( 'WP_Post' );
+		$post->post_type = 'post';
 		$post->ID = 7;
 
 		Functions\expect( 'wp_nonce_field' )->once();

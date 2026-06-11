@@ -44,5 +44,18 @@ class TailSignal_Activator {
 		if ( $admin ) {
 			$admin->add_cap( 'tailsignal_manage' );
 		}
+
+		// Re-schedule pending scheduled notifications. Deactivation clears
+		// their cron events; without this they would sit in 'scheduled'
+		// status forever. Overdue ones are sent shortly after reactivation.
+		$notifications = TailSignal_DB::get_scheduled_notifications();
+		foreach ( $notifications as $notification ) {
+			$args = array( (int) $notification->id );
+			if ( wp_next_scheduled( 'tailsignal_send_scheduled', $args ) ) {
+				continue;
+			}
+			$timestamp = (int) get_gmt_from_date( $notification->scheduled_at, 'U' );
+			wp_schedule_single_event( max( $timestamp, time() + MINUTE_IN_SECONDS ), 'tailsignal_send_scheduled', $args );
+		}
 	}
 }

@@ -139,7 +139,7 @@ class Test_TailSignal_Admin_History extends TailSignal_TestCase {
 		Functions\expect( 'check_ajax_referer' )->once();
 		Functions\expect( 'current_user_can' )->andReturn( true );
 
-		// delete_all_notifications: START TRANSACTION, 2x TRUNCATE, COMMIT.
+		// delete_all_notifications: START TRANSACTION, 2x DELETE, COMMIT.
 		$queries = array();
 		$wpdb->shouldReceive( 'query' )
 			->andReturnUsing( function( $sql ) use ( &$queries ) {
@@ -159,8 +159,8 @@ class Test_TailSignal_Admin_History extends TailSignal_TestCase {
 		}
 		$this->assertCount( 4, $queries );
 		$this->assertSame( 'START TRANSACTION', $queries[0] );
-		$this->assertStringContainsString( 'TRUNCATE', $queries[1] );
-		$this->assertStringContainsString( 'TRUNCATE', $queries[2] );
+		$this->assertStringContainsString( 'DELETE FROM', $queries[1] );
+		$this->assertStringContainsString( 'DELETE FROM', $queries[2] );
 		$this->assertSame( 'COMMIT', $queries[3] );
 	}
 

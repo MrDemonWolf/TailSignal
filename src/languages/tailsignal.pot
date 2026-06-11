@@ -1,0 +1,1032 @@
+# Copyright (C) 2026 MrDemonWolf, Inc.
+# This file is distributed under the GPL-2.0-or-later.
+msgid ""
+msgstr ""
+"Project-Id-Version: TailSignal 1.2.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/src\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-06-11T14:10:49+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: tailsignal\n"
+
+#. Plugin Name of the plugin
+#: tailsignal.php
+#: admin/class-tailsignal-admin.php:20
+#: admin/class-tailsignal-admin.php:21
+msgid "TailSignal"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: tailsignal.php
+msgid "https://github.com/mrdemonwolf/TailSignal"
+msgstr ""
+
+#. Description of the plugin
+#: tailsignal.php
+msgid "A self-hosted WordPress plugin using Expo to send custom push notifications. Own your data, bypass OneSignal, and keep your pack in the loop with a wag."
+msgstr ""
+
+#. Author of the plugin
+#: tailsignal.php
+msgid "MrDemonWolf, Inc."
+msgstr ""
+
+#. Author URI of the plugin
+#: tailsignal.php
+msgid "https://github.com/mrdemonwolf"
+msgstr ""
+
+#: admin/class-tailsignal-admin-devices.php:44
+msgid "Label"
+msgstr ""
+
+#: admin/class-tailsignal-admin-devices.php:45
+msgid "Token"
+msgstr ""
+
+#: admin/class-tailsignal-admin-devices.php:46
+msgid "Platform"
+msgstr ""
+
+#: admin/class-tailsignal-admin-devices.php:47
+msgid "Model"
+msgstr ""
+
+#: admin/class-tailsignal-admin-devices.php:48
+msgid "OS"
+msgstr ""
+
+#: admin/class-tailsignal-admin-devices.php:49
+msgid "App Ver"
+msgstr ""
+
+#: admin/class-tailsignal-admin-devices.php:50
+msgid "Locale"
+msgstr ""
+
+#: admin/class-tailsignal-admin-devices.php:51
+msgid "Last Active"
+msgstr ""
+
+#: admin/class-tailsignal-admin-devices.php:85
+msgid "(no label)"
+msgstr ""
+
+#: admin/class-tailsignal-admin-devices.php:92
+msgid "Inactive"
+msgstr ""
+
+#: admin/class-tailsignal-admin-devices.php:107
+msgid "Edit Label"
+msgstr ""
+
+#: admin/class-tailsignal-admin-devices.php:113
+msgid "Remove Dev"
+msgstr ""
+
+#: admin/class-tailsignal-admin-devices.php:113
+msgid "Mark Dev"
+msgstr ""
+
+#: admin/class-tailsignal-admin-devices.php:121
+msgid "Are you sure you want to delete this device?"
+msgstr ""
+
+#: admin/class-tailsignal-admin-devices.php:122
+#: admin/class-tailsignal-admin-devices.php:195
+#: admin/partials/groups.php:53
+msgid "Delete"
+msgstr ""
+
+#: admin/class-tailsignal-admin-devices.php:156
+#: admin/class-tailsignal-admin-devices.php:175
+msgid "(unknown)"
+msgstr ""
+
+#: admin/class-tailsignal-admin-devices.php:180
+msgid "Never"
+msgstr ""
+
+#: admin/class-tailsignal-admin-devices.php:182
+#: admin/class-tailsignal-admin-history.php:149
+#: admin/partials/dashboard.php:152
+msgid "ago"
+msgstr ""
+
+#: admin/class-tailsignal-admin-devices.php:218
+msgid "All Platforms"
+msgstr ""
+
+#: admin/class-tailsignal-admin-devices.php:225
+msgid "All Devices"
+msgstr ""
+
+#: admin/class-tailsignal-admin-devices.php:226
+msgid "Dev Only"
+msgstr ""
+
+#: admin/class-tailsignal-admin-devices.php:227
+msgid "Non-Dev"
+msgstr ""
+
+#: admin/class-tailsignal-admin-devices.php:233
+msgid "All Groups"
+msgstr ""
+
+#: admin/class-tailsignal-admin-devices.php:240
+#: admin/class-tailsignal-admin-history.php:182
+msgid "Filter"
+msgstr ""
+
+#: admin/class-tailsignal-admin-devices.php:294
+#: admin/class-tailsignal-admin-devices.php:312
+#: rest-api/class-tailsignal-rest-controller.php:103
+msgid "You do not have permission to perform this action."
+msgstr ""
+
+#: admin/class-tailsignal-admin-devices.php:337
+#: admin/class-tailsignal-admin-devices.php:363
+#: admin/class-tailsignal-admin-groups.php:45
+#: admin/class-tailsignal-admin-groups.php:91
+#: admin/class-tailsignal-admin-history.php:235
+#: admin/class-tailsignal-admin-send.php:34
+#: admin/class-tailsignal-admin-send.php:123
+#: admin/class-tailsignal-meta-box.php:155
+msgid "Permission denied."
+msgstr ""
+
+#: admin/class-tailsignal-admin-devices.php:344
+#: admin/class-tailsignal-admin-devices.php:370
+msgid "Invalid device ID."
+msgstr ""
+
+#: admin/class-tailsignal-admin-devices.php:350
+msgid "Device updated."
+msgstr ""
+
+#: admin/class-tailsignal-admin-devices.php:352
+#: admin/class-tailsignal-admin-devices.php:382
+msgid "Failed to update device."
+msgstr ""
+
+#: admin/class-tailsignal-admin-devices.php:378
+msgid "Device marked as dev."
+msgstr ""
+
+#: admin/class-tailsignal-admin-devices.php:379
+msgid "Device removed from dev."
+msgstr ""
+
+#: admin/class-tailsignal-admin-groups.php:26
+msgid "Invalid nonce. Please try again."
+msgstr ""
+
+#: admin/class-tailsignal-admin-groups.php:54
+msgid "Group name is required."
+msgstr ""
+
+#: admin/class-tailsignal-admin-groups.php:72
+msgid "Failed to save group."
+msgstr ""
+
+#: admin/class-tailsignal-admin-groups.php:79
+msgid "Group saved."
+msgstr ""
+
+#: admin/class-tailsignal-admin-groups.php:97
+msgid "Invalid group ID."
+msgstr ""
+
+#: admin/class-tailsignal-admin-groups.php:103
+msgid "Group deleted."
+msgstr ""
+
+#: admin/class-tailsignal-admin-groups.php:105
+msgid "Failed to delete group."
+msgstr ""
+
+#: admin/class-tailsignal-admin-history.php:36
+#: admin/partials/dashboard.php:109
+#: admin/partials/send-notification.php:65
+#: admin/partials/send-notification.php:276
+msgid "Title"
+msgstr ""
+
+#: admin/class-tailsignal-admin-history.php:37
+#: admin/partials/dashboard.php:110
+msgid "Type"
+msgstr ""
+
+#: admin/class-tailsignal-admin-history.php:38
+#: admin/partials/send-notification.php:277
+msgid "Target"
+msgstr ""
+
+#: admin/class-tailsignal-admin-history.php:39
+#: admin/class-tailsignal-admin.php:52
+#: admin/class-tailsignal-admin.php:53
+#: admin/partials/dashboard.php:47
+#: admin/partials/dashboard.php:111
+#: admin/partials/devices.php:18
+#: admin/partials/groups.php:34
+msgid "Devices"
+msgstr ""
+
+#: admin/class-tailsignal-admin-history.php:40
+#: admin/partials/dashboard.php:112
+msgid "Status"
+msgstr ""
+
+#: admin/class-tailsignal-admin-history.php:41
+#: admin/partials/dashboard.php:113
+msgid "Date"
+msgstr ""
+
+#: admin/class-tailsignal-admin-history.php:100
+msgid "All"
+msgstr ""
+
+#: admin/class-tailsignal-admin-history.php:101
+#: admin/partials/devices.php:51
+msgid "Dev"
+msgstr ""
+
+#: admin/class-tailsignal-admin-history.php:102
+msgid "Group"
+msgstr ""
+
+#: admin/class-tailsignal-admin-history.php:103
+msgid "Specific"
+msgstr ""
+
+#: admin/class-tailsignal-admin-history.php:146
+msgid "Scheduled:"
+msgstr ""
+
+#: admin/class-tailsignal-admin-history.php:168
+msgid "All Types"
+msgstr ""
+
+#: admin/class-tailsignal-admin-history.php:169
+msgid "Post"
+msgstr ""
+
+#: admin/class-tailsignal-admin-history.php:170
+msgid "Manual"
+msgstr ""
+
+#: admin/class-tailsignal-admin-history.php:171
+#: admin/class-tailsignal-admin-history.php:178
+msgid "Scheduled"
+msgstr ""
+
+#: admin/class-tailsignal-admin-history.php:175
+msgid "All Statuses"
+msgstr ""
+
+#: admin/class-tailsignal-admin-history.php:176
+msgid "Sent"
+msgstr ""
+
+#: admin/class-tailsignal-admin-history.php:177
+msgid "OK"
+msgstr ""
+
+#: admin/class-tailsignal-admin-history.php:179
+msgid "Failed"
+msgstr ""
+
+#: admin/class-tailsignal-admin-history.php:241
+msgid "Failed to delete notification history."
+msgstr ""
+
+#: admin/class-tailsignal-admin-history.php:244
+msgid "All notification history deleted."
+msgstr ""
+
+#: admin/class-tailsignal-admin-send.php:44
+msgid "Invalid JSON in data field."
+msgstr ""
+
+#: admin/class-tailsignal-admin-send.php:52
+#: admin/class-tailsignal-meta-box.php:165
+msgid "Title and body are required."
+msgstr ""
+
+#: admin/class-tailsignal-admin-send.php:75
+#: rest-api/class-tailsignal-rest-controller.php:457
+msgid "Notification scheduled successfully."
+msgstr ""
+
+#: admin/class-tailsignal-admin-send.php:79
+#: rest-api/class-tailsignal-rest-controller.php:448
+msgid "Failed to schedule notification."
+msgstr ""
+
+#: admin/class-tailsignal-admin-send.php:87
+#: admin/class-tailsignal-meta-box.php:198
+#: rest-api/class-tailsignal-rest-controller.php:469
+msgid "No devices found for the selected target."
+msgstr ""
+
+#. translators: 1: success count, 2: total count
+#: admin/class-tailsignal-admin-send.php:105
+#, php-format
+msgid "Notification sent to %1$d of %2$d devices."
+msgstr ""
+
+#: admin/class-tailsignal-admin-send.php:112
+#: admin/class-tailsignal-meta-box.php:222
+#: rest-api/class-tailsignal-rest-controller.php:487
+msgid "Failed to send notification."
+msgstr ""
+
+#: admin/class-tailsignal-admin-send.php:129
+msgid "Invalid notification ID."
+msgstr ""
+
+#: admin/class-tailsignal-admin-send.php:135
+msgid "Scheduled notification cancelled."
+msgstr ""
+
+#: admin/class-tailsignal-admin-send.php:137
+msgid "Failed to cancel notification."
+msgstr ""
+
+#: admin/class-tailsignal-admin-settings.php:21
+msgid "General"
+msgstr ""
+
+#: admin/class-tailsignal-admin-settings.php:34
+msgid "Dev Mode"
+msgstr ""
+
+#: admin/class-tailsignal-admin-settings.php:40
+msgid "When ON, notifications only go to devices flagged as \"dev\". Use this for testing."
+msgstr ""
+
+#: admin/class-tailsignal-admin-settings.php:52
+msgid "Auto-notify on new posts"
+msgstr ""
+
+#: admin/class-tailsignal-admin-settings.php:58
+msgid "Automatically send a push notification when a post is published."
+msgstr ""
+
+#: admin/class-tailsignal-admin-settings.php:70
+msgid "Expo Access Token"
+msgstr ""
+
+#: admin/class-tailsignal-admin-settings.php:76
+msgid "Optional. Get from expo.dev dashboard."
+msgstr ""
+
+#: admin/class-tailsignal-admin-settings.php:84
+msgid "Notification Templates"
+msgstr ""
+
+#: admin/class-tailsignal-admin-settings.php:97
+#: admin/class-tailsignal-admin-settings.php:175
+msgid "Default Title"
+msgstr ""
+
+#: admin/class-tailsignal-admin-settings.php:114
+#: admin/class-tailsignal-admin-settings.php:192
+msgid "Default Body"
+msgstr ""
+
+#: admin/class-tailsignal-admin-settings.php:131
+#: admin/class-tailsignal-admin-settings.php:209
+msgid "Include Featured Image"
+msgstr ""
+
+#: admin/class-tailsignal-admin-settings.php:137
+msgid "Sends post featured image as rich notification on iOS and Android."
+msgstr ""
+
+#: admin/class-tailsignal-admin-settings.php:144
+msgid "Portfolio Templates"
+msgstr ""
+
+#: admin/class-tailsignal-admin-settings.php:157
+msgid "Auto-notify on new portfolio"
+msgstr ""
+
+#: admin/class-tailsignal-admin-settings.php:163
+msgid "Automatically send a push notification when a portfolio item is published."
+msgstr ""
+
+#: admin/class-tailsignal-admin-settings.php:215
+msgid "Sends portfolio featured image as rich notification on iOS and Android."
+msgstr ""
+
+#: admin/class-tailsignal-admin-settings.php:224
+msgid "Configure general TailSignal settings."
+msgstr ""
+
+#: admin/class-tailsignal-admin-settings.php:231
+msgid "These templates are used for auto-publish notifications. Each post can override them in the TailSignal meta box."
+msgstr ""
+
+#: admin/class-tailsignal-admin-settings.php:233
+#: admin/class-tailsignal-admin-settings.php:244
+msgid "Available placeholders:"
+msgstr ""
+
+#: admin/class-tailsignal-admin-settings.php:242
+msgid "These templates are used for auto-publish notifications on portfolio items."
+msgstr ""
+
+#: admin/class-tailsignal-admin.php:32
+#: admin/class-tailsignal-admin.php:33
+#: admin/partials/dashboard.php:18
+msgid "Dashboard"
+msgstr ""
+
+#: admin/class-tailsignal-admin.php:42
+#: admin/partials/send-notification.php:18
+msgid "Send Notification"
+msgstr ""
+
+#: admin/class-tailsignal-admin.php:43
+msgid "Send"
+msgstr ""
+
+#: admin/class-tailsignal-admin.php:62
+#: admin/class-tailsignal-admin.php:63
+msgid "Groups"
+msgstr ""
+
+#: admin/class-tailsignal-admin.php:72
+#: admin/class-tailsignal-admin.php:73
+msgid "History"
+msgstr ""
+
+#: admin/class-tailsignal-admin.php:82
+#: admin/class-tailsignal-admin.php:83
+#: admin/partials/settings.php:17
+msgid "Settings"
+msgstr ""
+
+#: admin/class-tailsignal-admin.php:175
+#: admin/partials/send-notification.php:103
+msgid "Choose Image"
+msgstr ""
+
+#: admin/class-tailsignal-admin.php:176
+msgid "Use this image"
+msgstr ""
+
+#: admin/class-tailsignal-admin.php:177
+msgid "Are you sure you want to delete this?"
+msgstr ""
+
+#: admin/class-tailsignal-admin.php:178
+msgid "Sending..."
+msgstr ""
+
+#: admin/class-tailsignal-admin.php:179
+msgid "Sent!"
+msgstr ""
+
+#: admin/class-tailsignal-admin.php:180
+msgid "An error occurred."
+msgstr ""
+
+#: admin/class-tailsignal-admin.php:181
+msgid "Scheduled!"
+msgstr ""
+
+#: admin/class-tailsignal-admin.php:182
+msgid "Schedule"
+msgstr ""
+
+#: admin/class-tailsignal-admin.php:183
+msgid "Please choose a date and time before scheduling."
+msgstr ""
+
+#: admin/class-tailsignal-admin.php:184
+msgid "Confirm"
+msgstr ""
+
+#: admin/class-tailsignal-admin.php:185
+#: admin/partials/devices.php:63
+#: admin/partials/devices.php:94
+#: admin/partials/groups.php:162
+#: admin/partials/send-notification.php:294
+msgid "Cancel"
+msgstr ""
+
+#: admin/class-tailsignal-admin.php:186
+msgid "Dismiss"
+msgstr ""
+
+#. translators: 1: selected count, 2: total count
+#: admin/class-tailsignal-admin.php:188
+#, php-format
+msgid "%1$s / %2$s selected"
+msgstr ""
+
+#: admin/class-tailsignal-admin.php:189
+msgid "Cancelled."
+msgstr ""
+
+#: admin/class-tailsignal-admin.php:190
+msgid "Are you sure you want to delete ALL notification history? This cannot be undone."
+msgstr ""
+
+#: admin/class-tailsignal-admin.php:191
+msgid "Deleting..."
+msgstr ""
+
+#: admin/class-tailsignal-admin.php:192
+#: admin/partials/history.php:26
+msgid "Delete All History"
+msgstr ""
+
+#: admin/class-tailsignal-meta-box.php:23
+msgid "TailSignal Push Notification"
+msgstr ""
+
+#: admin/class-tailsignal-meta-box.php:170
+msgid "Post not found."
+msgstr ""
+
+#. translators: 1: success count, 2: total count
+#: admin/class-tailsignal-meta-box.php:216
+#, php-format
+msgid "Sent to %1$d of %2$d devices."
+msgstr ""
+
+#: admin/partials/dashboard.php:20
+msgid "Overview of your push notification activity."
+msgstr ""
+
+#: admin/partials/dashboard.php:23
+#: admin/partials/send-notification.php:23
+msgid "Dev Mode: ON"
+msgstr ""
+
+#. translators: %d: dev device count
+#: admin/partials/dashboard.php:34
+#, php-format
+msgid "Dev Mode is ON — notifications only go to dev devices (%d)."
+msgstr ""
+
+#. translators: 1: iOS count, 2: Android count
+#: admin/partials/dashboard.php:53
+#, php-format
+msgid "%1$d iOS, %2$d Android"
+msgstr ""
+
+#: admin/partials/dashboard.php:64
+msgid "Sent This Month"
+msgstr ""
+
+#: admin/partials/dashboard.php:66
+msgid "notifications delivered"
+msgstr ""
+
+#: admin/partials/dashboard.php:72
+msgid "Success Rate"
+msgstr ""
+
+#: admin/partials/dashboard.php:74
+msgid "delivery rate"
+msgstr ""
+
+#: admin/partials/dashboard.php:81
+msgid "Monthly Trends"
+msgstr ""
+
+#: admin/partials/dashboard.php:85
+msgid "Monthly notification trends chart"
+msgstr ""
+
+#: admin/partials/dashboard.php:89
+msgid "No notification data yet. Send your first notification to see trends here."
+msgstr ""
+
+#: admin/partials/dashboard.php:98
+msgid "Recent Notifications"
+msgstr ""
+
+#: admin/partials/dashboard.php:101
+msgid "Clear All"
+msgstr ""
+
+#: admin/partials/dashboard.php:137
+#: admin/partials/dashboard.php:138
+msgid "ok"
+msgstr ""
+
+#: admin/partials/dashboard.php:139
+msgid "pending"
+msgstr ""
+
+#: admin/partials/dashboard.php:140
+msgid "scheduled"
+msgstr ""
+
+#: admin/partials/dashboard.php:141
+msgid "failed"
+msgstr ""
+
+#: admin/partials/dashboard.php:142
+msgid "cancelled"
+msgstr ""
+
+#: admin/partials/dashboard.php:161
+msgid "No notifications sent yet. Your recent sends will appear here."
+msgstr ""
+
+#: admin/partials/devices.php:20
+msgid "Manage registered push notification devices."
+msgstr ""
+
+#: admin/partials/devices.php:24
+msgid "Export CSV"
+msgstr ""
+
+#: admin/partials/devices.php:27
+msgid "Import CSV"
+msgstr ""
+
+#: admin/partials/devices.php:36
+msgid "Total Active"
+msgstr ""
+
+#: admin/partials/devices.php:41
+msgid "iOS"
+msgstr ""
+
+#: admin/partials/devices.php:46
+msgid "Android"
+msgstr ""
+
+#: admin/partials/devices.php:62
+msgid "Upload & Import"
+msgstr ""
+
+#. translators: %d: number of devices deleted
+#: admin/partials/devices.php:76
+#, php-format
+msgid "%d device deleted."
+msgid_plural "%d devices deleted."
+msgstr[0] ""
+msgstr[1] ""
+
+#: admin/partials/devices.php:85
+#: admin/partials/devices.php:88
+msgid "Edit Device Label"
+msgstr ""
+
+#: admin/partials/devices.php:95
+msgid "Save"
+msgstr ""
+
+#: admin/partials/devices.php:109
+msgid "Search Devices"
+msgstr ""
+
+#: admin/partials/groups.php:18
+msgid "Device Groups"
+msgstr ""
+
+#: admin/partials/groups.php:20
+msgid "Organize devices into groups for targeted notifications."
+msgstr ""
+
+#: admin/partials/groups.php:23
+msgid "+ Create Group"
+msgstr ""
+
+#: admin/partials/groups.php:33
+#: admin/partials/groups.php:83
+msgid "Name"
+msgstr ""
+
+#: admin/partials/groups.php:35
+#: admin/partials/groups.php:90
+msgid "Description"
+msgstr ""
+
+#: admin/partials/groups.php:36
+#: admin/partials/send-notification.php:279
+msgid "Actions"
+msgstr ""
+
+#: admin/partials/groups.php:50
+msgid "Edit"
+msgstr ""
+
+#: admin/partials/groups.php:66
+msgid "No groups created yet. Create a group to organize your devices."
+msgstr ""
+
+#: admin/partials/groups.php:75
+msgid "Edit Group"
+msgstr ""
+
+#: admin/partials/groups.php:75
+msgid "Create Group"
+msgstr ""
+
+#: admin/partials/groups.php:97
+msgid "Assign Devices"
+msgstr ""
+
+#: admin/partials/groups.php:101
+msgid "Search by name or token..."
+msgstr ""
+
+#. translators: %1$d: selected count, %2$d: total count
+#: admin/partials/groups.php:108
+#, php-format
+msgid "%1$d / %2$d selected"
+msgstr ""
+
+#: admin/partials/groups.php:116
+msgid "Select all"
+msgstr ""
+
+#: admin/partials/groups.php:118
+msgid "Deselect all"
+msgstr ""
+
+#: admin/partials/groups.php:148
+msgid "DEV"
+msgstr ""
+
+#: admin/partials/groups.php:155
+msgid "No active devices registered."
+msgstr ""
+
+#: admin/partials/groups.php:161
+msgid "Save Group"
+msgstr ""
+
+#: admin/partials/history.php:21
+msgid "Notification History"
+msgstr ""
+
+#: admin/partials/history.php:23
+msgid "Browse all past and scheduled notification sends."
+msgstr ""
+
+#: admin/partials/meta-box.php:17
+msgid "Send notification on publish"
+msgstr ""
+
+#: admin/partials/meta-box.php:22
+msgid "Auto-notification already sent for this post."
+msgstr ""
+
+#: admin/partials/meta-box.php:29
+msgid "Include featured image"
+msgstr ""
+
+#: admin/partials/meta-box.php:35
+msgid "Quick Send"
+msgstr ""
+
+#: admin/partials/meta-box.php:38
+msgid "Title:"
+msgstr ""
+
+#: admin/partials/meta-box.php:44
+msgid "Body:"
+msgstr ""
+
+#: admin/partials/meta-box.php:50
+msgid "Send To:"
+msgstr ""
+
+#: admin/partials/meta-box.php:53
+#: admin/partials/send-notification.php:119
+msgid "All devices"
+msgstr ""
+
+#: admin/partials/meta-box.php:57
+#: admin/partials/send-notification.php:123
+msgid "Dev devices only"
+msgstr ""
+
+#: admin/partials/meta-box.php:62
+#: admin/partials/send-notification.php:128
+msgid "Group:"
+msgstr ""
+
+#: admin/partials/meta-box.php:74
+msgid "Dev Mode is ON — \"All devices\" will only send to dev devices."
+msgstr ""
+
+#: admin/partials/meta-box.php:80
+msgid "Send Now"
+msgstr ""
+
+#: admin/partials/meta-box.php:87
+msgid "Send History"
+msgstr ""
+
+#. translators: %d: device count
+#: admin/partials/meta-box.php:100
+#, php-format
+msgid "%d devices"
+msgstr ""
+
+#: admin/partials/send-notification.php:20
+msgid "Compose and send push notifications to your audience."
+msgstr ""
+
+#. translators: %d: dev device count
+#: admin/partials/send-notification.php:34
+#, php-format
+msgid "Dev Mode ON — \"All devices\" will only send to %d dev devices."
+msgstr ""
+
+#: admin/partials/send-notification.php:46
+msgid "Testing? Pre-fill the form with sample data."
+msgstr ""
+
+#: admin/partials/send-notification.php:49
+msgid "Fill Test Data"
+msgstr ""
+
+#: admin/partials/send-notification.php:60
+msgid "Content"
+msgstr ""
+
+#: admin/partials/send-notification.php:80
+msgid "Body"
+msgstr ""
+
+#: admin/partials/send-notification.php:97
+msgid "Image URL (optional)"
+msgstr ""
+
+#: admin/partials/send-notification.php:106
+msgid "Shows as rich notification on iOS/Android."
+msgstr ""
+
+#: admin/partials/send-notification.php:115
+msgid "Targeting"
+msgstr ""
+
+#: admin/partials/send-notification.php:138
+msgid "Specific devices..."
+msgstr ""
+
+#: admin/partials/send-notification.php:163
+msgid "No devices registered."
+msgstr ""
+
+#: admin/partials/send-notification.php:172
+msgid "Scheduling"
+msgstr ""
+
+#: admin/partials/send-notification.php:176
+msgid "Now"
+msgstr ""
+
+#: admin/partials/send-notification.php:180
+msgid "Schedule:"
+msgstr ""
+
+#: admin/partials/send-notification.php:190
+msgid "Advanced"
+msgstr ""
+
+#: admin/partials/send-notification.php:193
+msgid "Custom Data (JSON, optional)"
+msgstr ""
+
+#: admin/partials/send-notification.php:197
+msgid "JSON payload sent to your app. For auto-published posts, TailSignal automatically includes post_id and post_type. Common keys for manual sends: post_id for deep linking, url for web links, badgeCount for badge updates."
+msgstr ""
+
+#: admin/partials/send-notification.php:206
+msgid "Signal the Pack"
+msgstr ""
+
+#: admin/partials/send-notification.php:219
+msgid "Preview"
+msgstr ""
+
+#: admin/partials/send-notification.php:232
+#: admin/partials/send-notification.php:253
+msgid "now"
+msgstr ""
+
+#: admin/partials/send-notification.php:236
+#: admin/partials/send-notification.php:255
+msgid "Notification Title"
+msgstr ""
+
+#: admin/partials/send-notification.php:237
+#: admin/partials/send-notification.php:256
+msgid "Notification body text will appear here..."
+msgstr ""
+
+#: admin/partials/send-notification.php:271
+msgid "Scheduled Notifications"
+msgstr ""
+
+#: admin/partials/send-notification.php:278
+msgid "Scheduled For"
+msgstr ""
+
+#: admin/partials/settings.php:19
+msgid "Configure TailSignal behavior, templates, and integrations."
+msgstr ""
+
+#: admin/partials/settings.php:47
+msgid "Save Settings"
+msgstr ""
+
+#: admin/partials/settings.php:54
+msgid "Data Management"
+msgstr ""
+
+#: admin/partials/settings.php:59
+msgid "Export All Devices (CSV)"
+msgstr ""
+
+#: admin/partials/settings.php:62
+msgid "Import Devices (CSV)"
+msgstr ""
+
+#: rest-api/class-tailsignal-rest-controller.php:125
+msgid "Invalid Expo push token format."
+msgstr ""
+
+#: rest-api/class-tailsignal-rest-controller.php:204
+msgid "The data field must be valid JSON."
+msgstr ""
+
+#: rest-api/class-tailsignal-rest-controller.php:247
+msgid "Invalid date format for scheduled_at."
+msgstr ""
+
+#: rest-api/class-tailsignal-rest-controller.php:254
+msgid "Scheduled time must be in the future."
+msgstr ""
+
+#: rest-api/class-tailsignal-rest-controller.php:284
+msgid "Too many requests. Please try again later."
+msgstr ""
+
+#: rest-api/class-tailsignal-rest-controller.php:326
+msgid "Failed to register device."
+msgstr ""
+
+#: rest-api/class-tailsignal-rest-controller.php:335
+msgid "Device registered successfully."
+msgstr ""
+
+#: rest-api/class-tailsignal-rest-controller.php:363
+msgid "Device not found."
+msgstr ""
+
+#: rest-api/class-tailsignal-rest-controller.php:375
+msgid "Device unregistered successfully."
+msgstr ""
+
+#: rest-api/class-tailsignal-rest-controller.php:501
+msgid "Notification sent successfully."
+msgstr ""
+
+#: rest-api/class-tailsignal-rest-controller.php:626
+msgid "No CSV file provided."
+msgstr ""
+
+#: rest-api/class-tailsignal-rest-controller.php:637
+msgid "Only CSV files are accepted."
+msgstr ""
+
+#: rest-api/class-tailsignal-rest-controller.php:647
+msgid "Unable to verify file type. MIME detection unavailable."
+msgstr ""
+
+#: rest-api/class-tailsignal-rest-controller.php:658
+msgid "Invalid file type."
+msgstr ""
+
+#: rest-api/class-tailsignal-rest-controller.php:667
+msgid "Could not read the uploaded file."
+msgstr ""
+
+#: rest-api/class-tailsignal-rest-controller.php:685
+msgid "Invalid CSV format."
+msgstr ""
+
+#. translators: 1: new count, 2: updated count, 3: skipped count
+#: rest-api/class-tailsignal-rest-controller.php:708
+#, php-format
+msgid "Import complete: %1$d new, %2$d updated, %3$d skipped."
+msgstr ""

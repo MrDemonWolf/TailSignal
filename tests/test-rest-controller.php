@@ -165,7 +165,37 @@ class Test_TailSignal_REST_Controller extends TailSignal_TestCase {
 		$wpdb = Mockery::mock( 'wpdb' );
 		$wpdb->prefix = 'wp_';
 
+		$device            = new stdClass();
+		$device->is_active = 1;
+
+		$wpdb->shouldReceive( 'prepare' )->andReturn( '' );
+		$wpdb->shouldReceive( 'get_row' )->once()->andReturn( $device );
 		$wpdb->shouldReceive( 'update' )->once()->andReturn( 1 );
+
+		$request = Mockery::mock( 'WP_REST_Request' );
+		$request->shouldReceive( 'get_param' )->with( 'expo_token' )->andReturn( 'ExponentPushToken[test123]' );
+
+		$response = $this->controller->unregister_device( $request );
+
+		$this->assertInstanceOf( 'WP_REST_Response', $response );
+		$this->assertSame( 200, $response->get_status() );
+	}
+
+	/**
+	 * Test unregister_device is idempotent for already-inactive devices.
+	 */
+	public function test_unregister_device_already_inactive() {
+		global $wpdb;
+
+		$wpdb = Mockery::mock( 'wpdb' );
+		$wpdb->prefix = 'wp_';
+
+		$device            = new stdClass();
+		$device->is_active = 0;
+
+		$wpdb->shouldReceive( 'prepare' )->andReturn( '' );
+		$wpdb->shouldReceive( 'get_row' )->once()->andReturn( $device );
+		// update should NOT be called — already inactive.
 
 		$request = Mockery::mock( 'WP_REST_Request' );
 		$request->shouldReceive( 'get_param' )->with( 'expo_token' )->andReturn( 'ExponentPushToken[test123]' );
@@ -185,7 +215,8 @@ class Test_TailSignal_REST_Controller extends TailSignal_TestCase {
 		$wpdb = Mockery::mock( 'wpdb' );
 		$wpdb->prefix = 'wp_';
 
-		$wpdb->shouldReceive( 'update' )->once()->andReturn( 0 );
+		$wpdb->shouldReceive( 'prepare' )->andReturn( '' );
+		$wpdb->shouldReceive( 'get_row' )->once()->andReturn( null );
 
 		$request = Mockery::mock( 'WP_REST_Request' );
 		$request->shouldReceive( 'get_param' )->with( 'expo_token' )->andReturn( 'ExponentPushToken[unknown]' );

@@ -256,4 +256,29 @@ class Test_TailSignal_Expo extends TailSignal_TestCase {
 		$result = TailSignal_Expo::check_receipts( array() );
 		$this->assertEmpty( $result );
 	}
+
+	/**
+	 * Test instance is recreated when the access token option changes.
+	 */
+	public function test_get_instance_recreated_on_token_change() {
+		Functions\expect( 'get_option' )
+			->with( 'tailsignal_expo_access_token', '' )
+			->twice()
+			->andReturn( '', 'new-token' );
+
+		$expo1 = TailSignal_Expo::get_instance();
+		$expo2 = TailSignal_Expo::get_instance();
+
+		$this->assertNotSame( $expo1, $expo2 );
+	}
+
+	/**
+	 * Test send result includes the ticket_token_map key for receipt cleanup.
+	 */
+	public function test_send_result_shape_includes_token_map() {
+		$result = TailSignal_Expo::send( array(), array( 'title' => 'T', 'body' => 'B' ) );
+
+		$this->assertArrayHasKey( 'ticket_token_map', $result );
+		$this->assertSame( array(), $result['ticket_token_map'] );
+	}
 }

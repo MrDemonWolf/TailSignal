@@ -1,6 +1,8 @@
 {
     "name": "mrdemonwolf/tailsignal-dev",
+    "description": "Development environment for the TailSignal WordPress plugin (tests, coding standards).",
     "type": "project",
+    "license": "GPL-2.0-or-later",
     "require": {
         "php": ">=7.4"
     },

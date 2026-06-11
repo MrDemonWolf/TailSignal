@@ -106,24 +106,4 @@ class TailSignal_Admin_Groups {
 		}
 	}
 
-	/**
-	 * Handle AJAX get group devices.
-	 */
-	public function handle_get_group_devices() {
-		check_ajax_referer( 'tailsignal_nonce', 'nonce' );
-
-		if ( ! current_user_can( 'tailsignal_manage' ) ) {
-			wp_send_json_error( array( 'message' => __( 'Permission denied.', 'tailsignal' ) ) );
-		}
-
-		$group_id = isset( $_GET['group_id'] ) ? intval( $_GET['group_id'] ) : 0;
-
-		if ( ! $group_id ) {
-			wp_send_json_error( array( 'message' => __( 'Invalid group ID.', 'tailsignal' ) ) );
-		}
-
-		$device_ids = TailSignal_DB::get_group_device_ids( $group_id );
-
-		wp_send_json_success( array( 'device_ids' => $device_ids ) );
-	}
 }

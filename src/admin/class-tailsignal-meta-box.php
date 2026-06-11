@@ -46,6 +46,9 @@ class TailSignal_Meta_Box {
 		$groups       = TailSignal_DB::get_all_groups();
 		$history      = TailSignal_DB::get_post_notification_history( $post->ID );
 
+		// Resolve post-type-specific default templates for the Quick Send fields.
+		list( $default_title, $default_body ) = $this->get_default_templates( $post->post_type );
+
 		// Default values.
 		if ( '' === $notify ) {
 			$notify = '1';
@@ -58,12 +61,37 @@ class TailSignal_Meta_Box {
 	}
 
 	/**
+	 * Resolve the default notification templates for a post type.
+	 *
+	 * @param string $post_type The post type.
+	 * @return array Array of [ default_title, default_body ].
+	 */
+	private function get_default_templates( $post_type ) {
+		if ( 'portfolio' === $post_type ) {
+			return array(
+				get_option( 'tailsignal_portfolio_default_title', 'New Project: {post_title}' ),
+				get_option( 'tailsignal_portfolio_default_body', '{post_title} by {author_name}' ),
+			);
+		}
+
+		return array(
+			get_option( 'tailsignal_default_title', 'New from {site_name}' ),
+			get_option( 'tailsignal_default_body', '{post_title}' ),
+		);
+	}
+
+	/**
 	 * Save meta box data.
 	 *
 	 * @param int     $post_id The post ID.
 	 * @param WP_Post $post    The post object.
 	 */
 	public function save_meta_box( $post_id, $post ) {
+		// Skip revisions.
+		if ( wp_is_post_revision( $post_id ) ) {
+			return;
+		}
+
 		// Verify nonce.
 		if ( ! isset( $_POST['tailsignal_meta_box_nonce'] ) ||
 		     ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['tailsignal_meta_box_nonce'] ) ), 'tailsignal_meta_box' ) ) {
@@ -93,21 +121,27 @@ class TailSignal_Meta_Box {
 		$include_img = isset( $_POST['tailsignal_include_image'] ) ? '1' : '0';
 		update_post_meta( $post_id, '_tailsignal_include_image', $include_img );
 
-		// Save custom title/body.
+		// Save custom title/body — only persist genuine overrides. The Quick
+		// Send fields are pre-filled with the default templates, so a value
+		// equal to the default (or empty) is not an override.
+		list( $default_title, $default_body ) = $this->get_default_templates( $post->post_type );
+
 		if ( isset( $_POST['tailsignal_custom_title'] ) ) {
-			update_post_meta(
-				$post_id,
-				'_tailsignal_custom_title',
-				sanitize_text_field( wp_unslash( $_POST['tailsignal_custom_title'] ) )
-			);
+			$custom_title = sanitize_text_field( wp_unslash( $_POST['tailsignal_custom_title'] ) );
+			if ( '' === $custom_title || $default_title === $custom_title ) {
+				delete_post_meta( $post_id, '_tailsignal_custom_title' );
+			} else {
+				update_post_meta( $post_id, '_tailsignal_custom_title', $custom_title );
+			}
 		}
 
 		if ( isset( $_POST['tailsignal_custom_body'] ) ) {
-			update_post_meta(
-				$post_id,
-				'_tailsignal_custom_body',
-				sanitize_text_field( wp_unslash( $_POST['tailsignal_custom_body'] ) )
-			);
+			$custom_body = sanitize_text_field( wp_unslash( $_POST['tailsignal_custom_body'] ) );
+			if ( '' === $custom_body || $default_body === $custom_body ) {
+				delete_post_meta( $post_id, '_tailsignal_custom_body' );
+			} else {
+				update_post_meta( $post_id, '_tailsignal_custom_body', $custom_body );
+			}
 		}
 	}
 

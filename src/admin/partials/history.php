@@ -8,6 +8,9 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+
+$table = new TailSignal_History_List_Table();
+$table->prepare_items();
 ?>
 <div id="tailsignal-app" class="wrap">
 	<!-- Page Header -->
@@ -23,13 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<?php esc_html_e( 'Delete All History', 'tailsignal' ); ?>
 		</button>
 	</div>
-</div>
 
-<?php
-$table = new TailSignal_History_List_Table();
-$table->prepare_items();
-?>
-<div id="tailsignal-app" class="wrap" style="padding-top: 0;">
 	<div class="tailsignal-table-wrap">
 		<form method="get">
 			<input type="hidden" name="page" value="tailsignal-history" />

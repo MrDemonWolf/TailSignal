@@ -3,7 +3,7 @@ Contributors: mrdemonwolf
 Tags: push notifications, expo, mobile, notifications, self-hosted
 Requires at least: 6.0
 Tested up to: 6.7
-Stable tag: 1.0.0
+Stable tag: 1.2.0
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -94,6 +94,28 @@ Send a POST request to `/wp-json/tailsignal/v1/register` with the Expo push toke
 
 == Changelog ==
 
+= 1.2.0 =
+* Fixed: sends to more than 100 devices failed entirely — pushes are now chunked to 100 messages per Expo request (receipt checks chunked to 1000 IDs)
+* Fixed: scheduled notifications fired offset by the site's UTC offset on non-UTC sites
+* Fixed: stale device cleanup from delivery receipts never deactivated tokens
+* Fixed: the per-post "Send notification" checkbox was ignored on first publish
+* Fixed: device list filters and search did not apply
+* Fixed: dashboard chart did not render
+* Fixed: sends with zero successes were recorded as sent; receipt checks overwrote send-time failure counts
+* Fixed: re-registering a device wiped stored fields and the user link; concurrent registrations could return errors
+* Fixed: deactivating the plugin stranded scheduled notifications; reactivation now re-schedules them
+* Fixed: uninstall now removes portfolio options and all per-notification cron events
+* Fixed: CSV import now handles Excel UTF-8 BOM files; unregister is idempotent
+* Fixed: Quick Send fields no longer save default templates as per-post overrides
+* Added: translation template (POT) file; localized admin JS strings
+* Changed: Expo client refreshes when the access token setting changes
+
+= 1.1.0 =
+* Security: CSRF nonce verification on Groups edit page; capability check on meta box save; rate limiting on public REST endpoints
+* Performance: transient caching for dashboard stats; batch receipt checking; new database indexes
+* Added: dark mode support with WordPress admin color scheme detection
+* Accessibility: ARIA roles and labels on modals, status messages, and tables
+
 = 1.0.0 =
 * Initial release
 * Device registration and unregistration via REST API
@@ -109,6 +131,9 @@ Send a POST request to `/wp-json/tailsignal/v1/register` with the Expo push toke
 * Clean uninstall removes all data
 
 == Upgrade Notice ==
+
+= 1.2.0 =
+Critical fixes: sends to more than 100 devices, scheduled send timing on non-UTC sites, and stale device cleanup. Update strongly recommended.
 
 = 1.0.0 =
 Initial release.

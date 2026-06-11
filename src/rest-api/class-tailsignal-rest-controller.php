@@ -238,8 +238,10 @@ class TailSignal_REST_Controller {
 					if ( null === $value || '' === $value ) {
 						return true;
 					}
-					$timestamp = strtotime( $value );
-					if ( false === $timestamp ) {
+					// Site-local input; convert via the site timezone (WP pins
+					// PHP to UTC, so strtotime() would skew by the UTC offset).
+					$timestamp = (int) get_gmt_from_date( $value, 'U' );
+					if ( $timestamp <= 0 ) {
 						return new WP_Error(
 							'tailsignal_invalid_date',
 							__( 'Invalid date format for scheduled_at.', 'tailsignal' ),
@@ -350,14 +352,21 @@ class TailSignal_REST_Controller {
 
 		$expo_token = $request->get_param( 'expo_token' );
 
-		$result = TailSignal_DB::remove_device( $expo_token );
+		// Look the device up first so unregister is idempotent: a repeat
+		// DELETE for an already-inactive device is a success, not a 404
+		// (remove_device() returns false when 0 rows change).
+		$device = TailSignal_DB::get_device_by_token( $expo_token );
 
-		if ( ! $result ) {
+		if ( ! $device ) {
 			return new WP_Error(
 				'tailsignal_not_found',
 				__( 'Device not found.', 'tailsignal' ),
 				array( 'status' => 404 )
 			);
+		}
+
+		if ( $device->is_active ) {
+			TailSignal_DB::remove_device( $expo_token );
 		}
 
 		return new WP_REST_Response(
@@ -502,14 +511,15 @@ class TailSignal_REST_Controller {
 	 * @return WP_REST_Response
 	 */
 	public function get_stats( $request ) {
-		$platform_counts = TailSignal_DB::get_device_count_by_platform();
+		// Single cached query instead of three separate COUNTs.
+		$summary = TailSignal_DB::get_device_summary_stats();
 
 		return new WP_REST_Response(
 			array(
-				'total_devices'   => TailSignal_DB::get_device_count(),
-				'ios_devices'     => $platform_counts['ios'],
-				'android_devices' => $platform_counts['android'],
-				'dev_devices'     => TailSignal_DB::get_dev_device_count(),
+				'total_devices'   => $summary['total'],
+				'ios_devices'     => $summary['ios'],
+				'android_devices' => $summary['android'],
+				'dev_devices'     => $summary['dev'],
 				'monthly_sent'    => TailSignal_DB::get_monthly_send_count(),
 				'success_rate'    => TailSignal_DB::get_success_rate(),
 				'dev_mode'        => '1' === get_option( 'tailsignal_dev_mode', '0' ),
@@ -660,6 +670,14 @@ class TailSignal_REST_Controller {
 		}
 
 		$headers = fgetcsv( $file, 0, ',', '"', '\\' );
+
+		// Strip a UTF-8 BOM (Excel exports) from the first header, otherwise
+		// the expo_token column never matches and every row is skipped.
+		if ( is_array( $headers ) && isset( $headers[0] ) ) {
+			$headers[0] = preg_replace( '/^\xEF\xBB\xBF/', '', $headers[0] );
+			$headers    = array_map( 'trim', $headers );
+		}
+
 		if ( ! $headers ) {
 			fclose( $file );
 			return new WP_Error(

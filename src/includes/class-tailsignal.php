@@ -96,7 +96,6 @@ class TailSignal {
 		$groups = new TailSignal_Admin_Groups();
 		$this->loader->add_action( 'wp_ajax_tailsignal_save_group', $groups, 'handle_save_group' );
 		$this->loader->add_action( 'wp_ajax_tailsignal_delete_group', $groups, 'handle_delete_group' );
-		$this->loader->add_action( 'wp_ajax_tailsignal_get_group_devices', $groups, 'handle_get_group_devices' );
 
 		// History AJAX.
 		$history = new TailSignal_Admin_History();

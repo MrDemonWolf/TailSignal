@@ -51,7 +51,7 @@ TailSignal is a self-hosted WordPress plugin that sends push notifications to mo
 ├── tests/
 │   ├── bootstrap.php       # Defines WP constants, stub classes, loads autoloader from src/
 │   ├── TestCase.php         # Base class with Brain Monkey setUp/tearDown + common stubs
-│   └── test-*.php           # 10 test files
+│   └── test-*.php           # 19 test files
 ├── composer.json             # Dev dependencies (PHPUnit, Brain Monkey, Mockery)
 ├── package.json              # npm workspaces (src + docs)
 ├── Makefile                  # Build commands
@@ -127,7 +127,7 @@ Used in notification title/body templates:
 ## Testing
 
 - Run tests: `make test` or `composer test`
-- 169 tests, 263 assertions across 10 test files
+- 295 tests, 527 assertions across 19 test files
 - Brain Monkey mocks all WordPress functions (`add_action`, `get_option`, etc.)
 - Mockery mocks `$wpdb` and Expo SDK
 - `tests/bootstrap.php` defines stub classes: `WP_Error`, `WP_REST_Server`, `WP_REST_Response`, `WP_REST_Request`
@@ -169,9 +169,12 @@ Used in notification title/body templates:
 - Post-type-specific templates: portfolio uses `tailsignal_portfolio_*` options
 - Notification data includes `post_id`, `post_type`, and `url` for deep linking
 - Scheduling uses `wp_schedule_single_event` with `tailsignal_send_scheduled` hook
+- Scheduled datetimes are site-local; always convert via `get_gmt_from_date( $dt, 'U' )` (WP pins PHP to UTC, so `strtotime()` skews by the site's UTC offset)
 - Receipt checking via WP-Cron 15 minutes after each send
-- Expo SDK auto-chunks to 100 tokens per request (600/sec rate limit)
-- `DeviceNotRegistered` errors auto-deactivate stale tokens
+- TailSignal_Expo chunks pushes to 100 messages/request and receipt checks to 1000 IDs/request (the bundled SDK does NOT chunk; Expo rejects oversized requests)
+- `notifications.ticket_ids` stores a `{ticket_id: expo_token}` JSON map (legacy rows may hold a plain list) so receipt checking can deactivate stale tokens
+- `DeviceNotRegistered` errors auto-deactivate stale tokens (at send time and via receipts)
+- A send with zero successes is recorded as `status='failed'`, not `'sent'`
 - Admin pages use pre-compiled Tailwind CSS with `tw-` prefix to avoid WP conflicts
 - All admin content wrapped in `#tailsignal-app` container
 - AJAX handlers use `wp_send_json_success` / `wp_send_json_error`

@@ -40,8 +40,14 @@ class TailSignal_Notification {
 			return;
 		}
 
-		// Check per-post meta box toggle.
+		// Check per-post meta box toggle. On first publish transition_post_status
+		// fires before save_post persists the meta box, so prefer the submitted
+		// value when the meta box nonce is present in the request.
 		$notify = get_post_meta( $post->ID, '_tailsignal_notify', true );
+		if ( isset( $_POST['tailsignal_meta_box_nonce'] )
+			&& wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['tailsignal_meta_box_nonce'] ) ), 'tailsignal_meta_box' ) ) {
+			$notify = isset( $_POST['tailsignal_notify'] ) ? '1' : '0';
+		}
 		if ( '0' === $notify ) {
 			return;
 		}
@@ -51,6 +57,10 @@ class TailSignal_Notification {
 			return;
 		}
 
+		// Mark as notified BEFORE sending so a slow Expo call plus an editor
+		// retry cannot double-send. Cleared below if nothing was sent.
+		update_post_meta( $post->ID, '_tailsignal_notified', '1' );
+
 		// Build notification params.
 		$params = $this->build_post_notification_params( $post );
 
@@ -58,15 +68,15 @@ class TailSignal_Notification {
 		$tokens = TailSignal_DB::get_all_active_tokens();
 
 		if ( empty( $tokens ) ) {
+			delete_post_meta( $post->ID, '_tailsignal_notified' );
 			return;
 		}
 
 		// Send notification.
 		$result = self::send_notification( $params, $tokens, 'post', $post->ID );
 
-		if ( $result ) {
-			// Mark as notified to prevent duplicates.
-			update_post_meta( $post->ID, '_tailsignal_notified', '1' );
+		if ( ! $result ) {
+			delete_post_meta( $post->ID, '_tailsignal_notified' );
 		}
 	}
 
@@ -203,12 +213,16 @@ class TailSignal_Notification {
 		// Send via Expo.
 		$result = TailSignal_Expo::send( $tokens, $params );
 
-		// Update notification record.
+		// Update notification record. A send where nothing went out is a
+		// failure, not a success. Store the ticket→token map so receipt
+		// checking can deactivate stale tokens later.
 		TailSignal_DB::update_notification( $notification_id, array(
 			'total_success' => $result['success_count'],
 			'total_failed'  => $result['failed_count'],
-			'status'        => 'sent',
-			'ticket_ids'    => ! empty( $result['ticket_ids'] ) ? wp_json_encode( $result['ticket_ids'] ) : null,
+			'status'        => ( 0 === $result['success_count'] && empty( $result['ticket_ids'] ) ) ? 'failed' : 'sent',
+			'ticket_ids'    => ! empty( $result['ticket_token_map'] )
+				? wp_json_encode( $result['ticket_token_map'] )
+				: ( ! empty( $result['ticket_ids'] ) ? wp_json_encode( $result['ticket_ids'] ) : null ),
 		) );
 
 		// Link to post history if applicable.
@@ -258,14 +272,29 @@ class TailSignal_Notification {
 			return false;
 		}
 
-		// Schedule WP-Cron event.
-		$timestamp = strtotime( $scheduled_at );
-		if ( $timestamp ) {
-			wp_schedule_single_event(
-				$timestamp,
-				'tailsignal_send_scheduled',
-				array( $notification_id )
-			);
+		// Schedule WP-Cron event. The datetime comes from the admin/REST in
+		// site-local time; WordPress pins PHP to UTC, so convert via the site
+		// timezone instead of strtotime() or the event fires offset by the
+		// site's UTC offset.
+		$timestamp = (int) get_gmt_from_date( $scheduled_at, 'U' );
+
+		if ( $timestamp <= 0 ) {
+			TailSignal_DB::update_notification( $notification_id, array( 'status' => 'failed' ) );
+			return false;
+		}
+
+		$scheduled = wp_schedule_single_event(
+			$timestamp,
+			'tailsignal_send_scheduled',
+			array( $notification_id )
+		);
+
+		// wp_schedule_single_event() returns false (or WP_Error pre-5.7
+		// semantics aside) when the event could not be registered — without a
+		// cron event the row would sit in "scheduled" forever.
+		if ( false === $scheduled || is_wp_error( $scheduled ) ) {
+			TailSignal_DB::update_notification( $notification_id, array( 'status' => 'failed' ) );
+			return false;
 		}
 
 		return $notification_id;

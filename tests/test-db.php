@@ -64,7 +64,7 @@ class Test_TailSignal_DB extends TailSignal_TestCase {
 		$wpdb->prefix = 'wp_';
 		$wpdb->insert_id = 0;
 
-		$wpdb->shouldReceive( 'get_var' )->once()->andReturn( null );
+		$wpdb->shouldReceive( 'get_var' )->twice()->andReturn( null );
 		$wpdb->shouldReceive( 'prepare' )->andReturn( '' );
 		$wpdb->shouldReceive( 'insert' )->once()->andReturn( false );
 

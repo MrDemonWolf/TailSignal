@@ -37,13 +37,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<p>
 		<label style="font-size: 12px; font-weight: 500; color: #374151;"><?php esc_html_e( 'Title:', 'tailsignal' ); ?></label>
 		<input type="text" name="tailsignal_custom_title" class="widefat tailsignal-quick-title"
-			value="<?php echo esc_attr( ! empty( $custom_title ) ? $custom_title : get_option( 'tailsignal_default_title', 'New from {site_name}' ) ); ?>" />
+			value="<?php echo esc_attr( ! empty( $custom_title ) ? $custom_title : $default_title ); ?>" />
 	</p>
 
 	<p>
 		<label style="font-size: 12px; font-weight: 500; color: #374151;"><?php esc_html_e( 'Body:', 'tailsignal' ); ?></label>
 		<input type="text" name="tailsignal_custom_body" class="widefat tailsignal-quick-body"
-			value="<?php echo esc_attr( ! empty( $custom_body ) ? $custom_body : get_option( 'tailsignal_default_body', '{post_title}' ) ); ?>" />
+			value="<?php echo esc_attr( ! empty( $custom_body ) ? $custom_body : $default_body ); ?>" />
 	</p>
 
 	<p>
