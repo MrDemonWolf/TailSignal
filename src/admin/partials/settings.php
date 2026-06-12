@@ -44,7 +44,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 		}
 		?>
 
-		<?php submit_button( __( 'Save Settings', 'tailsignal' ), 'tailsignal-btn-brand' ); ?>
+		<div class="tailsignal-settings-submit">
+			<?php submit_button( __( 'Save Settings', 'tailsignal' ), 'tailsignal-btn-brand', 'submit', false ); ?>
+		</div>
 	</form>
 
 	<!-- Data Management -->
@@ -54,14 +56,38 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<h2><?php esc_html_e( 'Data Management', 'tailsignal' ); ?></h2>
 			</div>
 			<div class="tailsignal-card-body">
+				<p class="tailsignal-settings-helper"><?php esc_html_e( 'Export all registered devices as a CSV, or import devices from a CSV file.', 'tailsignal' ); ?></p>
 				<div class="tw-flex tw-gap-3">
 					<a href="<?php echo esc_url( wp_nonce_url( rest_url( 'tailsignal/v1/devices/export' ), 'wp_rest', '_wpnonce' ) ); ?>" class="button">
-						<?php esc_html_e( 'Export All Devices (CSV)', 'tailsignal' ); ?>
+						<span class="dashicons dashicons-download" style="font-size:16px;width:16px;height:16px;margin-right:4px;vertical-align:middle;margin-top:-2px;"></span>
+						<?php esc_html_e( 'Export Devices (CSV)', 'tailsignal' ); ?>
 					</a>
 					<a href="<?php echo esc_url( admin_url( 'admin.php?page=tailsignal-devices' ) ); ?>" class="button">
+						<span class="dashicons dashicons-upload" style="font-size:16px;width:16px;height:16px;margin-right:4px;vertical-align:middle;margin-top:-2px;"></span>
 						<?php esc_html_e( 'Import Devices (CSV)', 'tailsignal' ); ?>
 					</a>
 				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- About -->
+	<div class="tw-mt-4">
+		<div class="tailsignal-about-card">
+			<div class="tailsignal-about-card-logo">
+				<span class="dashicons dashicons-bell"></span>
+			</div>
+			<div class="tailsignal-about-card-info">
+				<strong>TailSignal</strong>
+				<span class="tailsignal-about-card-version">v<?php echo esc_html( TAILSIGNAL_VERSION ); ?></span>
+				<span class="tailsignal-about-card-sep">&bull;</span>
+				<a href="https://github.com/mrdemonwolf/TailSignal/releases" target="_blank" rel="noopener noreferrer">
+					<?php esc_html_e( 'Changelog', 'tailsignal' ); ?>
+				</a>
+				<span class="tailsignal-about-card-sep">&bull;</span>
+				<a href="https://github.com/mrdemonwolf/TailSignal/issues" target="_blank" rel="noopener noreferrer">
+					<?php esc_html_e( 'Report Issue', 'tailsignal' ); ?>
+				</a>
 			</div>
 		</div>
 	</div>

@@ -46,6 +46,7 @@ require_once TAILSIGNAL_PLUGIN_DIR . 'includes/class-tailsignal-deactivator.php'
 require_once TAILSIGNAL_PLUGIN_DIR . 'includes/class-tailsignal-expo.php';
 require_once TAILSIGNAL_PLUGIN_DIR . 'includes/class-tailsignal-notification.php';
 require_once TAILSIGNAL_PLUGIN_DIR . 'includes/class-tailsignal-cron.php';
+require_once TAILSIGNAL_PLUGIN_DIR . 'includes/class-tailsignal-updater.php';
 require_once TAILSIGNAL_PLUGIN_DIR . 'includes/class-tailsignal.php';
 
 // Include REST API.
@@ -75,3 +76,6 @@ function tailsignal_run() {
 	$plugin->run();
 }
 tailsignal_run();
+
+// GitHub update checker — runs on every admin load.
+( new TailSignal_Updater( TAILSIGNAL_PLUGIN_FILE ) )->init();
