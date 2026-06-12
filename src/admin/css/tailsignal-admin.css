@@ -1288,3 +1288,188 @@
 	color: var(--ts-text);
 	border-color: var(--ts-border);
 }
+
+/* ── Settings Submit Row ────────────────────────────── */
+.tailsignal-settings-submit {
+	padding: 16px 0 8px;
+}
+
+.tailsignal-settings-submit .button-primary {
+	height: 38px;
+	line-height: 36px;
+	padding: 0 20px;
+	font-size: 13px;
+}
+
+.tailsignal-settings-helper {
+	font-size: 13px;
+	color: var(--ts-text-secondary);
+	margin: 0 0 14px;
+}
+
+/* ── Settings Section: improved header ──────────────── */
+.tailsignal-settings-section {
+	position: relative;
+}
+
+.tailsignal-settings-section h2 {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.tailsignal-settings-section h2::before {
+	content: '';
+	display: inline-block;
+	width: 3px;
+	height: 16px;
+	background: linear-gradient(180deg, var(--ts-brand) 0%, #0991d4 100%);
+	border-radius: 2px;
+	flex-shrink: 0;
+}
+
+/* ── About Card ─────────────────────────────────────── */
+.tailsignal-about-card {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 12px 16px;
+	background: var(--ts-card-bg);
+	border: 1px solid var(--ts-card-border);
+	border-radius: var(--ts-radius);
+	box-shadow: var(--ts-card-shadow);
+}
+
+.tailsignal-about-card-logo {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	border-radius: 8px;
+	background: linear-gradient(135deg, #0FACED 0%, #0991d4 100%);
+	color: #fff;
+	flex-shrink: 0;
+}
+
+.tailsignal-about-card-logo .dashicons {
+	font-size: 18px;
+	width: 18px;
+	height: 18px;
+	line-height: 1;
+}
+
+.tailsignal-about-card-info {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+	font-size: 13px;
+	color: var(--ts-text-secondary);
+}
+
+.tailsignal-about-card-info strong {
+	color: var(--ts-text);
+	font-weight: 600;
+}
+
+.tailsignal-about-card-version {
+	display: inline-flex;
+	align-items: center;
+	padding: 1px 7px;
+	border-radius: 9999px;
+	font-size: 11px;
+	font-weight: 600;
+	background: var(--ts-brand-light);
+	color: var(--ts-brand-text);
+	border: 1px solid var(--ts-brand-border);
+	font-variant-numeric: tabular-nums;
+}
+
+.tailsignal-about-card-sep {
+	color: var(--ts-text-muted);
+	font-size: 11px;
+}
+
+.tailsignal-about-card-info a {
+	color: var(--ts-brand);
+	text-decoration: none;
+	font-size: 12px;
+}
+
+.tailsignal-about-card-info a:hover {
+	text-decoration: underline;
+}
+
+/* ── Plugins-page: "View on GitHub" row meta ────────── */
+.tailsignal-plugin-row-github a {
+	color: var(--ts-brand);
+}
+
+/* ── Update available notice on Plugins page ────────── */
+.tailsignal-update-details {
+	font-size: 13px;
+}
+
+/* ── Dashboard stat card: refined accent bar ────────── */
+.tailsignal-stat-card::before {
+	transition: opacity 0.2s ease;
+}
+
+.tailsignal-stat-card:hover::before {
+	opacity: 0.8;
+}
+
+/* ── Improved card-header spacing ──────────────────── */
+.tailsignal-card-header h2 {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+/* ── Table: zebra stripe polish ─────────────────────── */
+.tailsignal-table-wrap .wp-list-table tbody tr:nth-child(even) td {
+	background-color: #fafbfc;
+}
+
+/* ── Focus ring consistency across WP buttons ───────── */
+#tailsignal-app .button:focus-visible {
+	outline: 2px solid var(--ts-brand);
+	outline-offset: 2px;
+	box-shadow: none;
+}
+
+/* ── Responsive: collapse grid on narrow screens ────── */
+@media screen and (max-width: 782px) {
+	#tailsignal-app.wrap {
+		padding-top: 8px;
+	}
+
+	.tailsignal-about-card {
+		flex-wrap: wrap;
+		gap: 10px;
+	}
+
+	.tailsignal-settings-submit {
+		padding-bottom: 16px;
+	}
+}
+
+/* ── Dark mode: about card ──────────────────────────── */
+@media (prefers-color-scheme: dark) {
+	.tailsignal-table-wrap .wp-list-table tbody tr:nth-child(even) td {
+		background-color: #19253a;
+	}
+}
+
+#tailsignal-app[data-theme="dark"] .tailsignal-table-wrap .wp-list-table tbody tr:nth-child(even) td {
+	background-color: #19253a;
+}
+
+#tailsignal-app[data-theme="dark"] .tailsignal-about-card-sep {
+	color: var(--ts-text-muted);
+}
+
+#tailsignal-app[data-theme="dark"] .tailsignal-settings-helper {
+	color: var(--ts-text-secondary);
+}

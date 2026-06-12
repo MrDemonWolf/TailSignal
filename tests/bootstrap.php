@@ -8,6 +8,7 @@
 // Define WordPress constants needed by plugin files.
 define( 'ABSPATH', '/tmp/wordpress/' );
 define( 'TAILSIGNAL_VERSION', '1.0.0' );
+define( 'TAILSIGNAL_PLUGIN_FILE', dirname( __DIR__ ) . '/src/tailsignal.php' );
 define( 'TAILSIGNAL_PLUGIN_DIR', dirname( __DIR__ ) . '/src/' );
 define( 'TAILSIGNAL_PLUGIN_URL', 'http://example.com/wp-content/plugins/tailsignal/' );
 define( 'TAILSIGNAL_PLUGIN_BASENAME', 'tailsignal/tailsignal.php' );
