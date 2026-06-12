@@ -7,6 +7,7 @@
 
 use Brain\Monkey\Functions;
 
+require_once dirname( __DIR__ ) . '/src/includes/class-tailsignal-loader.php';
 require_once dirname( __DIR__ ) . '/src/includes/class-tailsignal-updater.php';
 
 class Test_TailSignal_Updater extends TailSignal_TestCase {
@@ -22,13 +23,25 @@ class Test_TailSignal_Updater extends TailSignal_TestCase {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Create an updater instance with plugin_basename mocked.
+	 * Create an updater instance backed by a real TailSignal_Loader stub.
 	 *
 	 * @return TailSignal_Updater
 	 */
 	private function make_updater() {
 		Functions\when( 'plugin_basename' )->justReturn( self::PLUGIN_SLUG );
-		return new TailSignal_Updater( self::PLUGIN_FILE );
+		$loader = $this->make_loader_stub();
+		return new TailSignal_Updater( self::PLUGIN_FILE, $loader );
+	}
+
+	/**
+	 * Build a TailSignal_Loader that silently accepts hook registrations.
+	 *
+	 * @return TailSignal_Loader
+	 */
+	private function make_loader_stub() {
+		Functions\when( 'add_filter' )->justReturn( true );
+		Functions\when( 'add_action' )->justReturn( true );
+		return new TailSignal_Loader();
 	}
 
 	/**
@@ -50,10 +63,7 @@ class Test_TailSignal_Updater extends TailSignal_TestCase {
 	}
 
 	/**
-	 * Mock a successful GitHub API response.
-	 *
-	 * Stubs all WP functions consumed by get_latest_release() when the
-	 * network request succeeds.
+	 * Mock a successful GitHub API response and all WP functions it touches.
 	 *
 	 * @param string $tag    Tag name.
 	 * @param array  $assets Optional release assets.
@@ -77,16 +87,17 @@ class Test_TailSignal_Updater extends TailSignal_TestCase {
 
 	public function test_constructor_creates_instance() {
 		Functions\when( 'plugin_basename' )->justReturn( self::PLUGIN_SLUG );
-		$updater = new TailSignal_Updater( self::PLUGIN_FILE );
+		$loader  = $this->make_loader_stub();
+		$updater = new TailSignal_Updater( self::PLUGIN_FILE, $loader );
 		$this->assertInstanceOf( TailSignal_Updater::class, $updater );
 	}
 
 	// -------------------------------------------------------------------------
-	// init() hook registration
+	// init() hook registration via loader
 	// -------------------------------------------------------------------------
 
-	public function test_init_registers_required_filters_and_actions() {
-		$updater = $this->make_updater();
+	public function test_init_registers_hooks_through_loader() {
+		Functions\when( 'plugin_basename' )->justReturn( self::PLUGIN_SLUG );
 
 		$filters = array();
 		$actions = array();
@@ -98,7 +109,10 @@ class Test_TailSignal_Updater extends TailSignal_TestCase {
 			$actions[] = $hook;
 		} );
 
+		$loader  = new TailSignal_Loader();
+		$updater = new TailSignal_Updater( self::PLUGIN_FILE, $loader );
 		$updater->init();
+		$loader->run();
 
 		$this->assertContains( 'pre_set_site_transient_update_plugins', $filters );
 		$this->assertContains( 'plugins_api', $filters );
@@ -118,6 +132,23 @@ class Test_TailSignal_Updater extends TailSignal_TestCase {
 
 		$this->assertSame( $transient, $result );
 		$this->assertFalse( isset( $result->response ) );
+	}
+
+	public function test_check_for_update_returns_unchanged_when_backoff_active() {
+		$updater   = $this->make_updater();
+		$transient = (object) array( 'checked' => array( self::PLUGIN_SLUG => '1.0.0' ) );
+
+		// Backoff transient is set — should skip remote request entirely.
+		Functions\when( 'get_transient' )->alias( function( $key ) {
+			return TailSignal_Updater::TRANSIENT_BACKOFF_KEY === $key ? true : false;
+		} );
+		Functions\when( 'wp_remote_get' )->alias( function() {
+			throw new \RuntimeException( 'wp_remote_get must not be called during backoff.' );
+		} );
+
+		$result = $updater->check_for_update( $transient );
+
+		$this->assertFalse( isset( $result->response[ self::PLUGIN_SLUG ] ) );
 	}
 
 	public function test_check_for_update_returns_unchanged_when_release_unavailable() {
@@ -147,7 +178,7 @@ class Test_TailSignal_Updater extends TailSignal_TestCase {
 	}
 
 	public function test_check_for_update_adds_no_update_when_version_is_same() {
-		// TAILSIGNAL_VERSION is defined as '1.0.0' in bootstrap.
+		// TAILSIGNAL_VERSION is '1.0.0' in bootstrap.
 		$updater   = $this->make_updater();
 		$transient = (object) array( 'checked' => array( self::PLUGIN_SLUG => '1.0.0' ) );
 
@@ -274,16 +305,13 @@ class Test_TailSignal_Updater extends TailSignal_TestCase {
 		$this->assertFalse( $result );
 	}
 
-	public function test_plugin_info_returns_false_when_action_is_plugin_information_but_passthrough_result_is_not_false() {
-		// If WP already has info (e.g. from another filter), we should NOT clobber it
-		// for a different slug.
+	public function test_plugin_info_passes_through_existing_result_for_other_slug() {
 		$updater  = $this->make_updater();
 		$args     = (object) array( 'slug' => 'jetpack' );
 		$existing = (object) array( 'name' => 'Jetpack' );
 
 		$result = $updater->plugin_info( $existing, 'plugin_information', $args );
 
-		// Slug doesn't match → pass $result through unchanged.
 		$this->assertSame( $existing, $result );
 	}
 
@@ -291,60 +319,61 @@ class Test_TailSignal_Updater extends TailSignal_TestCase {
 	// after_upgrade()
 	// -------------------------------------------------------------------------
 
-	public function test_after_upgrade_deletes_transient_on_plugin_update() {
-		$updater     = $this->make_updater();
-		$deleted_key = null;
+	public function test_after_upgrade_deletes_both_transients_on_plugin_update() {
+		$updater  = $this->make_updater();
+		$deleted  = array();
 
-		Functions\when( 'delete_transient' )->alias( function( $key ) use ( &$deleted_key ) {
-			$deleted_key = $key;
+		Functions\when( 'delete_transient' )->alias( function( $key ) use ( &$deleted ) {
+			$deleted[] = $key;
 			return true;
 		} );
 
 		$updater->after_upgrade( null, array( 'type' => 'plugin', 'action' => 'update' ) );
 
-		$this->assertSame( TailSignal_Updater::TRANSIENT_KEY, $deleted_key );
+		$this->assertContains( TailSignal_Updater::TRANSIENT_KEY, $deleted );
+		$this->assertContains( TailSignal_Updater::TRANSIENT_BACKOFF_KEY, $deleted );
 	}
 
 	public function test_after_upgrade_does_not_delete_transient_for_theme_update() {
-		$updater     = $this->make_updater();
-		$deleted_key = null;
+		$updater = $this->make_updater();
+		$deleted = array();
 
-		Functions\when( 'delete_transient' )->alias( function( $key ) use ( &$deleted_key ) {
-			$deleted_key = $key;
+		Functions\when( 'delete_transient' )->alias( function( $key ) use ( &$deleted ) {
+			$deleted[] = $key;
 			return true;
 		} );
 
 		$updater->after_upgrade( null, array( 'type' => 'theme', 'action' => 'update' ) );
 
-		$this->assertNull( $deleted_key );
+		$this->assertEmpty( $deleted );
 	}
 
 	public function test_after_upgrade_does_not_delete_transient_for_plugin_install() {
-		$updater     = $this->make_updater();
-		$deleted_key = null;
+		$updater = $this->make_updater();
+		$deleted = array();
 
-		Functions\when( 'delete_transient' )->alias( function( $key ) use ( &$deleted_key ) {
-			$deleted_key = $key;
+		Functions\when( 'delete_transient' )->alias( function( $key ) use ( &$deleted ) {
+			$deleted[] = $key;
 			return true;
 		} );
 
 		$updater->after_upgrade( null, array( 'type' => 'plugin', 'action' => 'install' ) );
 
-		$this->assertNull( $deleted_key );
+		$this->assertEmpty( $deleted );
 	}
 
 	public function test_after_upgrade_handles_empty_hook_extra() {
-		$updater     = $this->make_updater();
-		$deleted_key = null;
+		$updater = $this->make_updater();
+		$deleted = array();
 
-		Functions\when( 'delete_transient' )->alias( function( $key ) use ( &$deleted_key ) {
-			$deleted_key = $key;
+		Functions\when( 'delete_transient' )->alias( function( $key ) use ( &$deleted ) {
+			$deleted[] = $key;
 			return true;
 		} );
 
 		$updater->after_upgrade( null, array() );
 
-		$this->assertNull( $deleted_key );
+		$this->assertEmpty( $deleted );
 	}
 
 	// -------------------------------------------------------------------------
@@ -387,8 +416,12 @@ class Test_TailSignal_Updater extends TailSignal_TestCase {
 			'body'         => 'Big release.',
 		);
 
-		// Return cached data — no HTTP call should happen.
-		Functions\when( 'get_transient' )->justReturn( $cached );
+		// Backoff absent, success cache warm — no HTTP call.
+		Functions\when( 'get_transient' )->alias( function( $key ) use ( $cached ) {
+			if ( TailSignal_Updater::TRANSIENT_BACKOFF_KEY === $key ) return false;
+			if ( TailSignal_Updater::TRANSIENT_KEY === $key )         return $cached;
+			return false;
+		} );
 		Functions\when( 'wp_remote_get' )->alias( function() {
 			throw new \RuntimeException( 'wp_remote_get must not be called when cache is warm.' );
 		} );
@@ -409,45 +442,69 @@ class Test_TailSignal_Updater extends TailSignal_TestCase {
 		$stored_ttl = null;
 		Functions\when( 'set_transient' )->alias(
 			function( $key, $value, $expiration ) use ( &$stored, &$stored_ttl ) {
-				$stored     = array( 'key' => $key, 'value' => $value );
-				$stored_ttl = $expiration;
+				if ( TailSignal_Updater::TRANSIENT_KEY === $key ) {
+					$stored     = $value;
+					$stored_ttl = $expiration;
+				}
 				return true;
 			}
 		);
 
 		$updater->check_for_update( $transient );
 
-		$this->assertNotNull( $stored );
-		$this->assertSame( TailSignal_Updater::TRANSIENT_KEY, $stored['key'] );
-		$this->assertIsArray( $stored['value'] );
-		$this->assertSame( '2.0.0', $stored['value']['version'] );
+		$this->assertIsArray( $stored );
+		$this->assertSame( '2.0.0', $stored['version'] );
 		$this->assertSame( TailSignal_Updater::CACHE_SECS, $stored_ttl );
 	}
 
-	public function test_caches_false_with_short_ttl_on_failed_remote_request() {
+	public function test_sets_backoff_transient_on_network_failure() {
 		$updater   = $this->make_updater();
 		$transient = (object) array( 'checked' => array( self::PLUGIN_SLUG => '1.0.0' ) );
 
 		Functions\when( 'wp_remote_get' )->justReturn( new WP_Error( 'timeout', 'timeout' ) );
 		Functions\when( 'get_bloginfo' )->justReturn( '6.5' );
 
-		$stored_ttl = null;
-		$stored_val = 'NOT_SET';
+		$backoff_set = false;
+		$backoff_ttl = null;
 		Functions\when( 'set_transient' )->alias(
-			function( $key, $value, $expiration ) use ( &$stored_val, &$stored_ttl ) {
-				$stored_val = $value;
-				$stored_ttl = $expiration;
+			function( $key, $value, $expiration ) use ( &$backoff_set, &$backoff_ttl ) {
+				if ( TailSignal_Updater::TRANSIENT_BACKOFF_KEY === $key ) {
+					$backoff_set = true;
+					$backoff_ttl = $expiration;
+				}
 				return true;
 			}
 		);
 
 		$updater->check_for_update( $transient );
 
-		$this->assertFalse( $stored_val );
-		$this->assertSame( 300, $stored_ttl );
+		$this->assertTrue( $backoff_set );
+		$this->assertSame( TailSignal_Updater::BACKOFF_SECS, $backoff_ttl );
 	}
 
-	public function test_caches_false_on_non_200_response() {
+	public function test_does_not_set_success_cache_on_network_failure() {
+		$updater   = $this->make_updater();
+		$transient = (object) array( 'checked' => array( self::PLUGIN_SLUG => '1.0.0' ) );
+
+		Functions\when( 'wp_remote_get' )->justReturn( new WP_Error( 'timeout', 'timeout' ) );
+		Functions\when( 'get_bloginfo' )->justReturn( '6.5' );
+
+		$success_cached = false;
+		Functions\when( 'set_transient' )->alias(
+			function( $key ) use ( &$success_cached ) {
+				if ( TailSignal_Updater::TRANSIENT_KEY === $key ) {
+					$success_cached = true;
+				}
+				return true;
+			}
+		);
+
+		$updater->check_for_update( $transient );
+
+		$this->assertFalse( $success_cached );
+	}
+
+	public function test_sets_backoff_on_non_200_response() {
 		$updater   = $this->make_updater();
 		$transient = (object) array( 'checked' => array( self::PLUGIN_SLUG => '1.0.0' ) );
 
@@ -458,20 +515,22 @@ class Test_TailSignal_Updater extends TailSignal_TestCase {
 		Functions\when( 'wp_remote_retrieve_response_code' )->justReturn( 404 );
 		Functions\when( 'get_bloginfo' )->justReturn( '6.5' );
 
-		$stored_val = 'NOT_SET';
+		$backoff_set = false;
 		Functions\when( 'set_transient' )->alias(
-			function( $key, $value ) use ( &$stored_val ) {
-				$stored_val = $value;
+			function( $key ) use ( &$backoff_set ) {
+				if ( TailSignal_Updater::TRANSIENT_BACKOFF_KEY === $key ) {
+					$backoff_set = true;
+				}
 				return true;
 			}
 		);
 
 		$updater->check_for_update( $transient );
 
-		$this->assertFalse( $stored_val );
+		$this->assertTrue( $backoff_set );
 	}
 
-	public function test_caches_false_when_tag_name_missing_from_body() {
+	public function test_sets_backoff_when_tag_name_missing_from_body() {
 		$updater   = $this->make_updater();
 		$transient = (object) array( 'checked' => array( self::PLUGIN_SLUG => '1.0.0' ) );
 
@@ -484,17 +543,43 @@ class Test_TailSignal_Updater extends TailSignal_TestCase {
 		Functions\when( 'wp_remote_retrieve_body' )->justReturn( $body );
 		Functions\when( 'get_bloginfo' )->justReturn( '6.5' );
 
-		$stored_val = 'NOT_SET';
+		$backoff_set = false;
 		Functions\when( 'set_transient' )->alias(
-			function( $key, $value ) use ( &$stored_val ) {
-				$stored_val = $value;
+			function( $key ) use ( &$backoff_set ) {
+				if ( TailSignal_Updater::TRANSIENT_BACKOFF_KEY === $key ) {
+					$backoff_set = true;
+				}
 				return true;
 			}
 		);
 
 		$updater->check_for_update( $transient );
 
-		$this->assertFalse( $stored_val );
+		$this->assertTrue( $backoff_set );
+	}
+
+	// -------------------------------------------------------------------------
+	// User-Agent privacy
+	// -------------------------------------------------------------------------
+
+	public function test_user_agent_does_not_contain_site_url() {
+		$updater   = $this->make_updater();
+		$transient = (object) array( 'checked' => array( self::PLUGIN_SLUG => '1.0.0' ) );
+		$captured  = null;
+
+		Functions\when( 'get_bloginfo' )->justReturn( '6.5' );
+		Functions\when( 'get_option' )->justReturn( 'Y-m-d' );
+		Functions\when( 'wp_remote_get' )->alias( function( $url, $args ) use ( &$captured ) {
+			$captured = $args['user-agent'] ?? '';
+			return new WP_Error( 'stop', 'stop' );
+		} );
+
+		$updater->check_for_update( $transient );
+
+		$this->assertNotNull( $captured );
+		$this->assertStringNotContainsString( 'example.com', $captured );
+		$this->assertStringContainsString( 'TailSignal-Updater/', $captured );
+		$this->assertStringContainsString( 'WordPress/', $captured );
 	}
 
 	// -------------------------------------------------------------------------
@@ -509,13 +594,16 @@ class Test_TailSignal_Updater extends TailSignal_TestCase {
 		$this->assertNotEmpty( TailSignal_Updater::TRANSIENT_KEY );
 	}
 
+	public function test_backoff_key_differs_from_success_key() {
+		$this->assertNotSame( TailSignal_Updater::TRANSIENT_KEY, TailSignal_Updater::TRANSIENT_BACKOFF_KEY );
+	}
+
 	public function test_cache_seconds_constant_is_positive_integer() {
 		$this->assertIsInt( TailSignal_Updater::CACHE_SECS );
 		$this->assertGreaterThan( 0, TailSignal_Updater::CACHE_SECS );
 	}
 
-	public function test_short_failure_cache_is_much_less_than_normal_cache() {
-		// Failure cache (300s) must be significantly shorter than the 12-hour success cache.
-		$this->assertLessThan( TailSignal_Updater::CACHE_SECS, 300 );
+	public function test_backoff_seconds_is_much_less_than_cache_seconds() {
+		$this->assertLessThan( TailSignal_Updater::CACHE_SECS, TailSignal_Updater::BACKOFF_SECS );
 	}
 }

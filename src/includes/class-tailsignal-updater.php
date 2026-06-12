@@ -15,9 +15,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class TailSignal_Updater {
 
-	const GITHUB_REPO   = 'mrdemonwolf/TailSignal';
-	const TRANSIENT_KEY = 'tailsignal_github_update';
-	const CACHE_SECS    = 43200; // 12 hours.
+	const GITHUB_REPO          = 'mrdemonwolf/TailSignal';
+	const TRANSIENT_KEY        = 'tailsignal_github_update';
+	const TRANSIENT_BACKOFF_KEY = 'tailsignal_github_update_backoff';
+	const CACHE_SECS           = 43200; // 12 hours.
+	const BACKOFF_SECS         = 300;   // 5 minutes on failure.
 
 	/** @var string Absolute path to the main plugin file. */
 	private $plugin_file;
@@ -28,23 +30,28 @@ class TailSignal_Updater {
 	/** @var string Currently installed version. */
 	private $current_version;
 
+	/** @var TailSignal_Loader */
+	private $loader;
+
 	/**
-	 * @param string $plugin_file Absolute path to the main plugin file.
+	 * @param string            $plugin_file Absolute path to the main plugin file.
+	 * @param TailSignal_Loader $loader      Shared hook manager.
 	 */
-	public function __construct( $plugin_file ) {
+	public function __construct( $plugin_file, TailSignal_Loader $loader ) {
 		$this->plugin_file     = $plugin_file;
 		$this->plugin_slug     = plugin_basename( $plugin_file );
 		$this->current_version = TAILSIGNAL_VERSION;
+		$this->loader          = $loader;
 	}
 
 	/**
-	 * Register WordPress hooks.
+	 * Register WordPress hooks through the shared loader.
 	 */
 	public function init() {
-		add_filter( 'pre_set_site_transient_update_plugins', array( $this, 'check_for_update' ) );
-		add_filter( 'plugins_api', array( $this, 'plugin_info' ), 10, 3 );
-		add_action( 'upgrader_process_complete', array( $this, 'after_upgrade' ), 10, 2 );
-		add_filter( 'plugin_row_meta', array( $this, 'add_row_meta' ), 10, 2 );
+		$this->loader->add_filter( 'pre_set_site_transient_update_plugins', $this, 'check_for_update' );
+		$this->loader->add_filter( 'plugins_api', $this, 'plugin_info', 10, 3 );
+		$this->loader->add_action( 'upgrader_process_complete', $this, 'after_upgrade', 10, 2 );
+		$this->loader->add_filter( 'plugin_row_meta', $this, 'add_row_meta', 10, 2 );
 	}
 
 	// -------------------------------------------------------------------------
@@ -146,7 +153,7 @@ class TailSignal_Updater {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Delete the cached release after any plugin upgrade so the next check
+	 * Delete cached release data after any plugin upgrade so the next check
 	 * always hits GitHub fresh.
 	 *
 	 * @param WP_Upgrader $upgrader
@@ -159,6 +166,7 @@ class TailSignal_Updater {
 			'update' === $hook_extra['action']
 		) {
 			delete_transient( self::TRANSIENT_KEY );
+			delete_transient( self::TRANSIENT_BACKOFF_KEY );
 		}
 	}
 
@@ -191,17 +199,20 @@ class TailSignal_Updater {
 	/**
 	 * Fetch and cache the latest GitHub release.
 	 *
-	 * Returns false on failure (network error, unexpected response, etc.).
+	 * Uses two separate transients:
+	 * - TRANSIENT_KEY        : the successful release payload (12 h TTL).
+	 * - TRANSIENT_BACKOFF_KEY: a boolean flag set on failure (5 min TTL) so
+	 *   that get_transient() returning false can never be confused with a
+	 *   cached failure.
 	 *
-	 * @return array|false {
-	 *     @type string version      Semver string without leading "v".
-	 *     @type string html_url     Human-readable release page URL.
-	 *     @type string zip_url      Downloadable ZIP URL.
-	 *     @type string published_at Formatted publish date.
-	 *     @type string body         Release notes (HTML-safe).
-	 * }
+	 * @return array|false Release data array, or false on failure / during backoff.
 	 */
 	private function get_latest_release() {
+		// Honour 5-min backoff without confusing "miss" with "stored false".
+		if ( get_transient( self::TRANSIENT_BACKOFF_KEY ) ) {
+			return false;
+		}
+
 		$cached = get_transient( self::TRANSIENT_KEY );
 		if ( false !== $cached ) {
 			return $cached;
@@ -210,21 +221,20 @@ class TailSignal_Updater {
 		$api_url  = 'https://api.github.com/repos/' . self::GITHUB_REPO . '/releases/latest';
 		$response = wp_remote_get( $api_url, array(
 			'timeout'    => 10,
-			'user-agent' => 'TailSignal-Updater/' . $this->current_version . '; WordPress/' . get_bloginfo( 'version' ) . '; ' . get_bloginfo( 'url' ),
+			'user-agent' => 'TailSignal-Updater/' . $this->current_version . '; WordPress/' . get_bloginfo( 'version' ),
 			'headers'    => array(
 				'Accept' => 'application/vnd.github.v3+json',
 			),
 		) );
 
 		if ( is_wp_error( $response ) || 200 !== (int) wp_remote_retrieve_response_code( $response ) ) {
-			// Short cache on failure so we don't hammer the API.
-			set_transient( self::TRANSIENT_KEY, false, 300 );
+			set_transient( self::TRANSIENT_BACKOFF_KEY, true, self::BACKOFF_SECS );
 			return false;
 		}
 
 		$data = json_decode( wp_remote_retrieve_body( $response ), true );
 		if ( empty( $data['tag_name'] ) ) {
-			set_transient( self::TRANSIENT_KEY, false, 300 );
+			set_transient( self::TRANSIENT_BACKOFF_KEY, true, self::BACKOFF_SECS );
 			return false;
 		}
 

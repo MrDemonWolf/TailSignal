@@ -76,6 +76,3 @@ function tailsignal_run() {
 	$plugin->run();
 }
 tailsignal_run();
-
-// GitHub update checker — runs on every admin load.
-( new TailSignal_Updater( TAILSIGNAL_PLUGIN_FILE ) )->init();

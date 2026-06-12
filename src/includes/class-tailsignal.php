@@ -24,6 +24,7 @@ class TailSignal {
 	public function __construct() {
 		$this->loader = new TailSignal_Loader();
 		$this->set_locale();
+		$this->define_updater_hooks();
 		$this->define_rest_hooks();
 		$this->define_notification_hooks();
 		$this->define_cron_hooks();
@@ -31,6 +32,14 @@ class TailSignal {
 		if ( is_admin() ) {
 			$this->define_admin_hooks();
 		}
+	}
+
+	/**
+	 * Register GitHub update checker hooks.
+	 */
+	private function define_updater_hooks() {
+		$updater = new TailSignal_Updater( TAILSIGNAL_PLUGIN_FILE, $this->loader );
+		$updater->init();
 	}
 
 	/**

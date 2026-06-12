@@ -33,6 +33,7 @@ abstract class TailSignal_TestCase extends PHPUnitTestCase {
 			'get_transient'    => false,
 			'set_transient'    => true,
 			'delete_transient' => true,
+			'plugin_basename'  => TAILSIGNAL_PLUGIN_BASENAME,
 			'sanitize_text_field'     => function( $str ) { return trim( strip_tags( $str ) ); },
 			'sanitize_textarea_field' => function( $str ) { return trim( strip_tags( $str ) ); },
 			'esc_url_raw'             => function( $url ) { return $url; },

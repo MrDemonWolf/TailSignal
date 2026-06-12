@@ -256,8 +256,8 @@ class Test_TailSignal_Core extends TailSignal_TestCase {
 		$plugin = new TailSignal();
 		$plugin->run();
 
-		// plugins_loaded + rest_api_init + transition_post_status + 2 cron = 5
-		$this->assertSame( 5, $action_count );
+		// plugins_loaded + rest_api_init + transition_post_status + 2 cron + upgrader_process_complete = 6
+		$this->assertSame( 6, $action_count );
 	}
 
 	/**
@@ -276,9 +276,9 @@ class Test_TailSignal_Core extends TailSignal_TestCase {
 		$plugin = new TailSignal();
 		$plugin->run();
 
-		// 5 base + admin_menu + 2 enqueue + admin_footer + admin_init + add_meta_boxes + save_post
-		// + quick_send + send + cancel + save_group + delete_group
-		// + delete_all + update_device + toggle_dev = 5 + 15 = 20
-		$this->assertSame( 20, $action_count );
+		// 6 base (incl. upgrader_process_complete) + admin_menu + 2 enqueue + admin_footer + admin_init
+		// + add_meta_boxes + save_post + quick_send + send + cancel + save_group + delete_group
+		// + delete_all + update_device + toggle_dev = 6 + 15 = 21
+		$this->assertSame( 21, $action_count );
 	}
 }
